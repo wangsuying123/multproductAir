@@ -1,0 +1,1295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SystemSetting</class>
+ <widget class="QWidget" name="SystemSetting">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>系统设置</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* 全局样式 - 赛博朋克暗青蓝主题 */
+QWidget#SystemSetting {
+    background-color: #0a1929;
+    font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    color: #e2e8f0;
+}
+
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+
+/* 分组框样式 */
+QGroupBox {
+    background: rgba(17, 45, 78, 0.8);
+    border: 1px solid rgba(100, 210, 255, 0.4);
+    border-radius: 12px;
+    margin-top: 16px;
+    padding: 12px;
+    padding-top: 28px;
+    font-weight: 600;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 20px;
+    top: 5px;
+    color: #64d2ff;
+    font-size: 13px;
+    font-weight: 700;
+    background: transparent;
+    padding: 0 10px;
+}
+
+/* 标签样式 */
+QLabel {
+    color: #e2e8f0;
+    font-weight: 500;
+    background: transparent;
+}
+
+/* 输入框样式 */
+QLineEdit {
+    background: rgba(10, 25, 41, 0.9);
+    border: 2px solid #3282b8;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #f8fafc;
+    font-size: 13px;
+    min-height: 16px;
+}
+
+QLineEdit:focus {
+    border-color: #64d2ff;
+    background: rgba(17, 45, 78, 0.9);
+}
+
+QLineEdit:hover {
+    border-color: #42a5f5;
+}
+
+/* 下拉框样式 */
+QComboBox {
+    background: rgba(10, 25, 41, 0.9);
+    border: 2px solid #3282b8;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #f8fafc;
+    font-size: 13px;
+    min-height: 16px;
+}
+
+QComboBox:focus {
+    border-color: #64d2ff;
+}
+
+QComboBox:hover {
+    border-color: #42a5f5;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox QAbstractItemView {
+    background: #112d4e;
+    border: 1px solid #3282b8;
+    border-radius: 6px;
+    color: #f8fafc;
+    selection-background-color: #1e5f74;
+    selection-color: #64d2ff;
+    padding: 5px;
+}
+
+/* 时间编辑框 */
+QTimeEdit {
+    background: rgba(10, 25, 41, 0.9);
+    border: 2px solid #3282b8;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #f8fafc;
+    font-size: 13px;
+    min-height: 16px;
+}
+
+QTimeEdit:focus {
+    border-color: #64d2ff;
+}
+
+QTimeEdit:hover {
+    border-color: #42a5f5;
+}
+
+/* 复选框样式 */
+QCheckBox {
+    color: #e2e8f0;
+    font-size: 12px;
+    spacing: 10px;
+    padding: 6px;
+}
+
+QCheckBox::indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid #3282b8;
+    background-color: rgba(10, 25, 41, 0.9);
+}
+
+QCheckBox::indicator:checked {
+    background-color: #64d2ff;
+    border-color: #64d2ff;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #64d2ff;
+}
+
+/* Tab控件样式 */
+QTabWidget::pane {
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(17, 45, 78, 0.6);
+    top: -1px;
+}
+
+QTabBar::tab {
+    background: rgba(17, 45, 78, 0.8);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-bottom: none;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 10px 30px;
+    margin-right: 4px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #94a3b8;
+    min-width: 100px;
+}
+
+QTabBar::tab:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e5f74, stop:1 #112d4e);
+    color: #64d2ff;
+    border-bottom: 3px solid #64d2ff;
+}
+
+QTabBar::tab:hover:!selected {
+    background: rgba(30, 95, 116, 0.6);
+    color: #64d2ff;
+}
+
+/* 默认按钮样式 - 蓝色 */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #42a5f5, stop:1 #1e88e5);
+    color: white;
+    border: 2px solid #42a5f5;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 70px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #64b5f6, stop:1 #42a5f5);
+    border-color: #64b5f6;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1e88e5, stop:1 #1565c0);
+}
+
+/* 绿色按钮 - 立即备份 */
+QPushButton#manualBackupButton, QPushButton#manualLogBackupButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #00e676, stop:1 #00c853);
+    border: 2px solid #00e676;
+    min-width: 130px;
+}
+
+QPushButton#manualBackupButton:hover, QPushButton#manualLogBackupButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #69f0ae, stop:1 #00e676);
+    border-color: #69f0ae;
+}
+
+QPushButton#manualBackupButton:pressed, QPushButton#manualLogBackupButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #00c853, stop:1 #00a844);
+}
+
+/* 橙色按钮 - 选择路径 */
+QPushButton#selectDataPathButton, QPushButton#selectBackupPathButton, 
+QPushButton#selectLogPathButton, QPushButton#selectLogBackupPathButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffa726, stop:1 #fb8c00);
+    border: 2px solid #ffa726;
+}
+
+QPushButton#selectDataPathButton:hover, QPushButton#selectBackupPathButton:hover,
+QPushButton#selectLogPathButton:hover, QPushButton#selectLogBackupPathButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffb74d, stop:1 #ffa726);
+    border-color: #ffb74d;
+}
+
+QPushButton#selectDataPathButton:pressed, QPushButton#selectBackupPathButton:pressed,
+QPushButton#selectLogPathButton:pressed, QPushButton#selectLogBackupPathButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #fb8c00, stop:1 #ef6c00);
+}
+
+/* 状态标签 - 最后备份时间 */
+QLabel#lastBackupLabel, QLabel#lastLogBackupLabel {
+    color: #64d2ff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 12px 20px;
+    background: rgba(10, 25, 41, 0.9);
+    border: 2px solid rgba(100, 210, 255, 0.4);
+    border-radius: 10px;
+    min-width: 180px;
+}
+
+/* 滚动条样式 */
+QScrollBar:vertical {
+    background: rgba(17, 45, 78, 0.5);
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #64d2ff;
+    border-radius: 5px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #97e7ff;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background: rgba(17, 45, 78, 0.5);
+    height: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #64d2ff;
+    border-radius: 5px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #97e7ff;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>16</number>
+       </property>
+       <property name="leftMargin">
+        <number>16</number>
+       </property>
+       <property name="topMargin">
+        <number>16</number>
+       </property>
+       <property name="rightMargin">
+        <number>16</number>
+       </property>
+       <property name="bottomMargin">
+        <number>16</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <!-- Tab 1: 数据存储与备份 -->
+         <widget class="QWidget" name="tab_2">
+          <attribute name="title">
+           <string>  📁 数据存储与备份  </string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>16</number>
+           </property>
+           <!-- 数据存储设置 -->
+           <item>
+            <widget class="QGroupBox" name="dataStorageGroupBox">
+             <property name="title">
+              <string>数据存储设置</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_storage">
+              <property name="spacing">
+               <number>16</number>
+              </property>
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="dataStorageLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>数据存储路径:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="dataStoragePathEdit">
+                <property name="minimumSize">
+                 <size>
+                  <width>400</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>D:\AirTightnessData\Storage</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="selectDataPathButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>90</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>📂 选择</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_storage">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <!-- 自动备份设置 -->
+           <item>
+            <widget class="QGroupBox" name="autoBackupGroupBox">
+             <property name="title">
+              <string>自动备份设置</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_auto">
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <property name="horizontalSpacing">
+               <number>12</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>12</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="backupPeriodLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>备份周期:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="backupPeriodComboBox">
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>每天</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>每周</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>每月</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="backupTimeLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>备份时间:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QTimeEdit" name="backupTimeEdit">
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>36</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="backupRetentionLabel">
+                <property name="text">
+                 <string>备份保留:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_retention">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="backupRetentionEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>90</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="backupRetentionUnitLabel">
+                  <property name="text">
+                   <string>天</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="backupLocationLabel">
+                <property name="text">
+                 <string>备份位置:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <layout class="QHBoxLayout" name="horizontalLayout_backup">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="backupLocationEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>220</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>D:\AirTightnessData\Backup</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="selectBackupPathButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>📂 选择</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0" colspan="4">
+               <widget class="QCheckBox" name="enableAutoBackupCheckBox">
+                <property name="text">
+                 <string>启用自动备份</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <!-- 手动备份 -->
+           <item>
+            <widget class="QGroupBox" name="manualBackupGroupBox">
+             <property name="title">
+              <string>手动备份</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_manual">
+              <property name="spacing">
+               <number>16</number>
+              </property>
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="manualBackupButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>120</width>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>💾 立即备份</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="lastBackupLabel">
+                <property name="text">
+                 <string>最后备份时间: --</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <!-- Tab 2: 日志备份 -->
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>  📋 日志备份  </string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>16</number>
+           </property>
+           <!-- 日志存储设置 -->
+           <item>
+            <widget class="QGroupBox" name="logStorageGroupBox">
+             <property name="title">
+              <string>日志存储设置</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_logStorage">
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <property name="horizontalSpacing">
+               <number>12</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>12</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="logPathLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>日志存储路径:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_logPath">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="logPathEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>220</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>D:\AirTightnessData\Logs</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="selectLogPathButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>📂 选择</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="logLevelLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>日志级别:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QComboBox" name="logLevelComboBox">
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>DEBUG</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>INFO</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>WARN</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ERROR</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="logSplitLabel">
+                <property name="text">
+                 <string>日志分割:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="logSplitComboBox">
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>按天分割</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>按大小分割</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>按月分割</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="logRetentionLabel">
+                <property name="text">
+                 <string>日志保留:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <layout class="QHBoxLayout" name="horizontalLayout_logRetention">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="logRetentionEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>30</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="logRetentionUnitLabel">
+                  <property name="text">
+                   <string>天</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <!-- 日志备份设置 -->
+           <item>
+            <widget class="QGroupBox" name="logBackupGroupBox">
+             <property name="title">
+              <string>日志备份设置</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_logBackup">
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <property name="horizontalSpacing">
+               <number>12</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>12</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="logBackupPathLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>日志备份路径:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_logBackupPath">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="logBackupPathEdit">
+                  <property name="minimumSize">
+                   <size>
+                    <width>220</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>D:\AirTightnessData\LogBackup</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="selectLogBackupPathButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>36</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>📂 选择</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="logBackupPeriodLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>80</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>日志备份周期:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QComboBox" name="logBackupPeriodComboBox">
+                <property name="minimumSize">
+                 <size>
+                  <width>130</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>每天</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>每周</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>每月</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="4">
+               <widget class="QCheckBox" name="enableLogBackupCheckBox">
+                <property name="text">
+                 <string>启用日志自动备份</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <!-- 手动日志备份 -->
+           <item>
+            <widget class="QGroupBox" name="manualLogBackupGroupBox">
+             <property name="title">
+              <string>手动日志备份</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_manualLog">
+              <property name="spacing">
+               <number>16</number>
+              </property>
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="manualLogBackupButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>140</width>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>📋 立即备份日志</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_log">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="lastLogBackupLabel">
+                <property name="text">
+                 <string>最后备份时间: --</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <!-- Tab 3: 启动设置 -->
+         <widget class="QWidget" name="tab_4">
+          <attribute name="title">
+           <string>  🚀 启动设置  </string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_startup">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>16</number>
+           </property>
+           <!-- 系统启动设置 -->
+           <item>
+            <widget class="QGroupBox" name="systemStartupGroupBox">
+             <property name="title">
+              <string>系统启动设置</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_systemStartup">
+              <property name="spacing">
+               <number>14</number>
+              </property>
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <item>
+               <widget class="QCheckBox" name="enableAutoStartCheckBox">
+                <property name="text">
+                 <string>🔄 开机自动启动</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="minimizeToTrayCheckBox">
+                <property name="text">
+                 <string>📥 启动时最小化到系统托盘</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="useExternalMachineCheckBox">
+                <property name="text">
+                 <string>🖥️ 使用外部机台</string>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <!-- 自动连接设置 -->
+           <item>
+            <widget class="QGroupBox" name="autoConnectGroupBox">
+             <property name="title">
+              <string>自动连接设置</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_autoConnect">
+              <property name="spacing">
+               <number>14</number>
+              </property>
+              <property name="leftMargin">
+               <number>16</number>
+              </property>
+              <property name="topMargin">
+               <number>16</number>
+              </property>
+              <property name="rightMargin">
+               <number>16</number>
+              </property>
+              <property name="bottomMargin">
+               <number>16</number>
+              </property>
+              <item>
+               <widget class="QCheckBox" name="autoConnectCheckBox">
+                <property name="text">
+                 <string>🔗 启动时自动连接设备</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="autoStartRecordCheckBox">
+                <property name="text">
+                 <string>📝 连接后自动开始记录</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_startupButtons">
+             <property name="spacing">
+              <number>16</number>
+             </property>
+             <item>
+              <spacer name="horizontalSpacer_startupButtons">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="cancelButton">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>取消</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="saveButton">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>保存</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

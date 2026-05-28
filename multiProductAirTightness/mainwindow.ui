@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>智芯气密检测系统</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* 全局样式 - 赛博朋克暗青蓝主题 */
+* {
+    font-family: 'Microsoft YaHei UI', 'SimHei', sans-serif;
+    font-size: 14px;
+}
+
+/* 主窗口背景 - 深色科技感 */
+QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+        stop:0 #0a1929, stop:0.5 #0d2137, stop:1 #0a1929);
+}
+
+/* 中央部件背景 */
+QWidget#centralWidget {
+    background: transparent;
+}
+
+/* 菜单栏样式 - 科技感渐变 */
+QMenuBar {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+        stop:0 #112d4e, stop:0.3 #1e5f74, stop:0.7 #1e5f74, stop:1 #112d4e);
+    color: #f8fafc;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 5px 10px;
+    border: none;
+    border-bottom: 2px solid #3282b8;
+    spacing: 5px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    color: #e2e8f0;
+    padding: 6px 12px;
+    margin: 2px 3px;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+QMenuBar::item:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #3282b8, stop:1 #1e5f74);
+    color: #ffffff;
+    border: 1px solid #64d2ff;
+}
+
+QMenuBar::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #42a5f5, stop:1 #1e88e5);
+    color: #ffffff;
+    border: 1px solid #64d2ff;
+}
+
+QMenuBar::item:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #1565c0, stop:1 #0d47a1);
+}
+
+/* 下拉菜单样式 */
+QMenu {
+    background-color: #112d4e;
+    color: #e2e8f0;
+    border: 1px solid #3282b8;
+    border-radius: 8px;
+    padding: 8px 5px;
+}
+
+QMenu::item {
+    background: transparent;
+    color: #e2e8f0;
+    padding: 10px 30px;
+    margin: 2px 5px;
+    border-radius: 5px;
+}
+
+QMenu::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+        stop:0 #3282b8, stop:1 #1e5f74);
+    color: #ffffff;
+}
+
+QMenu::item:pressed {
+    background: #1565c0;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #3282b8;
+    margin: 5px 10px;
+}
+
+/* 堆叠部件样式 */
+QStackedWidget {
+    background: rgba(17, 45, 78, 0.6);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 12px;
+    margin: 8px;
+}
+
+/* 状态栏样式 */
+QStatusBar {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+        stop:0 #112d4e, stop:0.5 #1e5f74, stop:1 #112d4e);
+    color: #64d2ff;
+    font-weight: 600;
+    padding: 8px 15px;
+    border: none;
+    border-top: 2px solid #3282b8;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+/* 滚动条样式 */
+QScrollBar:vertical {
+    background: rgba(17, 45, 78, 0.5);
+    width: 12px;
+    border-radius: 6px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+        stop:0 #3282b8, stop:1 #64d2ff);
+    border-radius: 6px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+        stop:0 #42a5f5, stop:1 #97e7ff);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background: rgba(17, 45, 78, 0.5);
+    height: 12px;
+    border-radius: 6px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #3282b8, stop:1 #64d2ff);
+    border-radius: 6px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #42a5f5, stop:1 #97e7ff);
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* 工具提示样式 */
+QToolTip {
+    background-color: #112d4e;
+    color: #64d2ff;
+    border: 1px solid #3282b8;
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+   </string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1280</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+   <addaction name="actionCommunications"/>
+   <addaction name="actionAirtightParamSetting"/>
+   <addaction name="actionMainControlSetting"/>
+   <addaction name="actionRealtimeMonitor"/>
+   <addaction name="actionTestResultshow"/>
+   <addaction name="actionSystemSetting"/>
+   <addaction name="actionUserManagement"/>
+   <addaction name="actionAbout"/>
+   <addaction name="actionLogout"/>
+   <addaction name="actionToggleFullscreen"/>
+  </widget>
+  <action name="actionCommunications">
+   <property name="text">
+    <string>通讯连接</string>
+   </property>
+   <property name="toolTip">
+    <string>配置设备通讯连接</string>
+   </property>
+  </action>
+  <action name="actionAirtightParamSetting">
+   <property name="text">
+    <string>气密仪参数设置</string>
+   </property>
+   <property name="toolTip">
+    <string>设置气密仪测试参数（需要管理员权限）</string>
+   </property>
+  </action>
+  <action name="actionRealtimeMonitor">
+   <property name="text">
+    <string>实时监测数据</string>
+   </property>
+   <property name="toolTip">
+    <string>查看实时测试数据和状态</string>
+   </property>
+  </action>
+  <action name="actionMainControlSetting">
+   <property name="text">
+    <string>主控板参数设置</string>
+   </property>
+   <property name="toolTip">
+    <string>配置主控板和气缸阀门控制</string>
+   </property>
+  </action>
+  <action name="actionTestResultshow">
+   <property name="text">
+    <string>测试结果查询</string>
+   </property>
+   <property name="toolTip">
+    <string>查询历史测试结果记录</string>
+   </property>
+  </action>
+  <action name="actionSystemSetting">
+   <property name="text">
+    <string>系统设置</string>
+   </property>
+   <property name="toolTip">
+    <string>系统参数配置</string>
+   </property>
+  </action>
+  <action name="actionUserManagement">
+   <property name="text">
+    <string>用户管理</string>
+   </property>
+   <property name="toolTip">
+    <string>管理系统用户（需要管理员权限）</string>
+   </property>
+  </action>
+  <action name="actionLogout">
+   <property name="text">
+    <string>退出登录</string>
+   </property>
+   <property name="toolTip">
+    <string>退出当前登录账户</string>
+   </property>
+  </action>
+  <action name="actionToggleFullscreen">
+   <property name="text">
+    <string>退出全屏</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>关于我们</string>
+   </property>
+   <property name="toolTip">
+    <string>查看系统信息和关于我们</string>
+   </property>
+  </action>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

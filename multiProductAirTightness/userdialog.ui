@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UserDialog</class>
+ <widget class="QDialog" name="UserDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>550</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>520</width>
+    <height>550</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>用户信息</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* 对话框全局样式 - 高级设计 */
+QDialog {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #ffffff, stop:1 #f0f5fa);
+    border-radius: 12px;
+}
+
+/* 标签样式 - 增强可读性 */
+QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* 输入框样式 - 现代卡片风格 */
+QLineEdit {
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #ffffff, stop:1 #fafbfc);
+    color: #2c3e50;
+    selection-background-color: #1890ff;
+    selection-color: white;
+}
+
+QLineEdit:focus {
+    border-color: #1890ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #f0f8ff, stop:1 #e6f7ff);
+}
+
+QLineEdit:hover {
+    border-color: #40a9ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #fafbfc, stop:1 #f5f7fa);
+}
+
+/* 下拉框样式 - 现代设计 */
+QComboBox {
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #ffffff, stop:1 #fafbfc);
+    color: #2c3e50;
+}
+
+QComboBox:focus {
+    border-color: #1890ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #f0f8ff, stop:1 #e6f7ff);
+}
+
+QComboBox:hover {
+    border-color: #40a9ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #fafbfc, stop:1 #f5f7fa);
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 35px;
+    background: transparent;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid #8c8c8c;
+    margin-right: 10px;
+}
+
+QComboBox:hover::down-arrow {
+    border-top-color: #1890ff;
+}
+
+QComboBox QAbstractItemView {
+    background: white;
+    border: 2px solid #1890ff;
+    border-radius: 8px;
+    color: #2c3e50;
+    selection-background-color: #e6f7ff;
+    selection-color: #1890ff;
+    padding: 6px;
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 2px;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #f0f8ff, stop:1 #e6f7ff);
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #e6f7ff, stop:1 #bae7ff);
+    font-weight: 600;
+}
+
+/* 单选按钮样式 - 精致设计 */
+QRadioButton {
+    color: #2c3e50;
+    font-size: 14px;
+    spacing: 10px;
+    font-weight: 600;
+}
+
+QRadioButton::indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    border: 3px solid #d9d9d9;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #ffffff, stop:1 #fafafa);
+}
+
+QRadioButton::indicator:hover {
+    border-color: #40a9ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #f0f8ff, stop:1 #e6f7ff);
+}
+
+QRadioButton::indicator:checked {
+    border-color: #1890ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #1890ff, stop:1 #0066cc);
+    background-image: radial-gradient(circle, white 0%, white 30%, transparent 30%, transparent 100%);
+}
+
+/* 按钮通用样式 */
+QPushButton {
+    border: 2px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 100px;
+    min-height: 42px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 保存按钮样式 - 绿色主题 */
+QPushButton#saveButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #52c41a, stop:1 #389e0d);
+    color: white;
+    border: none;
+}
+
+QPushButton#saveButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #73d13d, stop:1 #52c41a);
+}
+
+QPushButton#saveButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #389e0d, stop:1 #237804);
+    padding: 13px 24px 11px 24px;
+}
+
+/* 取消按钮样式 - 灰色主题 */
+QPushButton#cancelButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #ffffff, stop:1 #f5f5f5);
+    color: #595959;
+    border: 2px solid #d9d9d9;
+}
+
+QPushButton#cancelButton:hover {
+    color: #1890ff;
+    border-color: #1890ff;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #f0f8ff, stop:1 #e6f7ff);
+}
+
+QPushButton#cancelButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #e6f7ff, stop:1 #bae7ff);
+    padding: 13px 24px 11px 24px;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>24</number>
+   </property>
+   <property name="leftMargin">
+    <number>35</number>
+   </property>
+   <property name="topMargin">
+    <number>35</number>
+   </property>
+   <property name="rightMargin">
+    <number>35</number>
+   </property>
+   <property name="bottomMargin">
+    <number>35</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="hintLabel">
+     <property name="text">
+      <string>📝 请填写以下信息（标记 * 为必填项）</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+QLabel {
+    color: #1890ff;
+    font-size: 15px;
+    font-weight: 700;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #e6f7ff, stop:1 #bae7ff);
+    border: 2px solid #91d5ff;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+      </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="horizontalSpacing">
+      <number>24</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>22</number>
+     </property>
+     <property name="labelAlignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="nameLabel">
+       <property name="text">
+        <string>* 用户名：</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 600;
+}
+QLabel::before {
+    content: "*";
+    color: #ff4d4f;
+}
+        </string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="nameLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>请输入用户名</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="employeeIdLabel">
+       <property name="text">
+        <string>工号：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="employeeIdLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>请输入工号</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="passwordLabel">
+       <property name="text">
+        <string>* 密码：</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 600;
+}
+        </string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="passwordLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>请输入密码</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="roleLabel">
+       <property name="text">
+        <string>角色：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="roleComboBox">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>45</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>管理员</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>技术员</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>操作员</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="statusLabel">
+       <property name="text">
+        <string>状态：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <layout class="QHBoxLayout" name="statusLayout">
+       <item>
+        <widget class="QRadioButton" name="enableRadioButton">
+         <property name="text">
+          <string>启用</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="disableRadioButton">
+         <property name="text">
+          <string>禁用</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveButton">
+       <property name="text">
+        <string>💾 保存</string>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string>✖ 取消</string>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>UserDialog</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
+</ui>

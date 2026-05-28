@@ -1,0 +1,11 @@
+serverAddr = "101.37.83.7"  
+serverPort = 7000            
+
+
+
+[[proxies]]
+name = "localhost001"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8088       
+remotePort = 8096       

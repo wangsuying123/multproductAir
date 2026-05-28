@@ -1,0 +1,1384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RealTimeMonitor</class>
+ <widget class="QWidget" name="RealTimeMonitor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>667</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>实时数据监测系统</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#RealTimeMonitor {
+    background-color: #0a1929;
+    font-family: 'Segoe UI', 'Microsoft YaHei UI', 'Consolas', monospace;
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+QScrollArea {
+    background-color: transparent;
+}
+
+QWidget#scrollAreaWidgetContents {
+    background-color: #0a1929;
+    padding: 4px;
+}
+
+QFrame#titleBar {
+    background: qlineargradient(135deg, #112d4e 0%, #1e5f74 50%, #3282b8 100%);
+    color: #f8fafc;
+    border-radius: 6px;
+    padding: 6px 12px;
+    box-shadow: 0 0 15px rgba(50, 130, 184, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3282b8;
+    max-height: 40px;
+}
+
+QLabel#systemTitle {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #64d2ff !important;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.7), 2px 2px 4px rgba(0, 0, 0, 0.5);
+    background: none !important;
+}
+
+#operatorInfo, #timeInfo {
+    background-color: #112d4e !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    color: #f8fafc !important;
+    font-weight: 600 !important;
+    box-shadow: inset 0 0 6px rgba(100, 210, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    min-width: 120px !important;
+    min-height: 26px !important;
+    text-align: center !important;
+    border: 1px solid #64d2ff !important;
+}
+
+#operatorInfo:hover, #timeInfo:hover {
+    background-color: #1a3a5c !important;
+    box-shadow: inset 0 0 10px rgba(100, 210, 255, 0.4), 0 3px 6px rgba(0, 0, 0, 0.5) !important;
+}
+
+QFrame {
+    background-color: rgba(17, 45, 78, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 0 3px rgba(100, 210, 255, 0.1);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+QFrame:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7), inset 0 0 6px rgba(100, 210, 255, 0.2);
+    border-color: rgba(100, 210, 255, 0.5);
+}
+
+QLabel#runningParamsTitle, QLabel#testResultTitle, QLabel#realtimeDataTitle, QLabel#resultTitle {
+    padding: 3px 10px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    line-height: 28px !important;
+    border-bottom: 2px solid #64d2ff;
+    background: qlineargradient(135deg, #112d4e 0%, #1e5f74 100%);
+    font-size: 14px;
+    font-weight: 600;
+    color: #f8fafc;
+    text-shadow: 0 0 6px rgba(248, 250, 252, 0.3);
+}
+
+QFrame#runningParamsFrame {
+    background: rgba(10, 25, 41, 0.8);
+    border: 1px solid #00e676;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.15), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+QFrame#paramFrame1, QFrame#paramFrame2, QFrame#paramFrame3, QFrame#paramFrame4, QFrame#paramFrame5, QFrame#paramFrame6, QFrame#paramFrame7 {
+    background: rgba(17, 45, 78, 0.85);
+    border-radius: 4px;
+    border: 1px solid #00e676;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 0 3px rgba(0, 230, 118, 0.1);
+    padding: 2px;
+}
+
+#paramLabel1, #paramLabel2, #paramLabel3, #paramLabel4, #paramLabel5, #paramLabel6, #paramLabel7 {
+    font-size: 13px;
+    color: #00e676;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+#paramValue1, #paramValue2, #paramValue3, #paramValue4, #paramValue5, #paramValue6, #paramValue7 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #97e7ff !important;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.6);
+}
+
+QFrame#testResultFrame {
+    background: rgba(10, 25, 41, 0.8);
+    border: 1px solid #64d2ff;
+    box-shadow: 0 0 15px rgba(100, 210, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+QFrame#resultFrame1, QFrame#resultFrame2, QFrame#resultFrame3, QFrame#resultFrame4 {
+    background: rgba(17, 45, 78, 0.85);
+    border-radius: 4px;
+    border: 1px solid #64d2ff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 0 3px rgba(100, 210, 255, 0.1);
+    padding: 2px;
+}
+
+#resultLabel1, #resultLabel2, #resultLabel3, #resultLabel4 {
+    font-size: 14px;
+    color: #64d2ff;
+    font-weight: 500;
+}
+
+#resultValue1, #resultValue2, #resultValue3, #resultValue4 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #64d2ff !important;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.6);
+}
+
+QFrame#processPanel {
+    background: rgba(10, 25, 41, 0.8);
+    border: 1px solid #00e676;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.15), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+QFrame#testResultContainer {
+    background: rgba(10, 25, 41, 0.8);
+    border: 1px solid #64d2ff;
+    box-shadow: 0 0 15px rgba(100, 210, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+QFrame#processStatus {
+    background: rgba(17, 45, 78, 0.95);
+    border-radius: 6px;
+    border: 1px solid #ff9800;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.3);
+}
+
+#statusText {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ff9800;
+    text-align: center;
+}
+
+#testProgressBar {
+    height: 30px;
+    border-radius: 15px;
+    background-color: rgba(17, 45, 78, 0.95);
+    border: 2px solid rgba(100, 210, 255, 0.4);
+    font-size: 13px;
+    font-weight: 700;
+    color: #f8fafc;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.8);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 15px rgba(100, 210, 255, 0.2);
+}
+
+QProgressBar#testProgressBar::chunk {
+    border-radius: 14px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00e676, stop:0.3 #69f0ae, stop:0.5 #81c784, stop:0.7 #69f0ae, stop:1 #00e676);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 230, 118, 0.5);
+}
+
+#resultItem1, #resultItem2, #resultItem3, #resultItem4 {
+    background-color: rgba(10, 25, 41, 0.85);
+    border-radius: 4px;
+    padding: 3px 6px;
+    margin: 2px 2px;
+    border: 1px solid #475569;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4);
+    min-width: 180px;
+    width: 100%;
+}
+
+#resultLabel5, #resultLabel6, #resultLabel7, #resultLabel8, #resultLabel9, #resultLabel10, #resultLabel11, #resultLabel12, #resultLabel13, #resultLabel14, #resultLabel15 {
+    font-size: 12px;
+    color: #e2e8f0;
+    font-weight: 500;
+    min-width: 45px;
+    max-width: 55px;
+    flex-shrink: 1;
+}
+
+#resultValue5, #resultValue6, #resultValue7, #resultValue9, #resultValue10, #resultValue11, #resultValue12, #resultValue13, #resultValue14 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64d2ff;
+    min-width: 70px;
+    text-align: right;
+    flex-shrink: 1;
+}
+
+#resultValue8 {
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background-color: rgba(10, 25, 41, 0.9);
+    border: 1px solid #00e676;
+    color: #00e676;
+    min-width: 35px;
+    text-align: center;
+    flex-shrink: 1;
+}
+
+#resultValue15 {
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: rgba(10, 25, 41, 0.9);
+    border: 2px solid #ff9800;
+    color: #ff9800;
+    min-width: 45px;
+    text-align: center;
+    flex-shrink: 1;
+    font-weight: 700;
+}
+
+QPushButton {
+    background: qlineargradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+    color: #f8fafc;
+    border: 1px solid #64d2ff;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background: qlineargradient(135deg, #1d57b1 0%, #2575d0 50%, #2986e2 100%);
+    border-color: #97e7ff;
+}
+
+QLineEdit {
+    background: rgba(10, 25, 41, 0.9);
+    border: 1px solid #3282b8;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #f8fafc;
+    font-size: 14px;
+}
+
+QCheckBox {
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+QLabel {
+    background-color: transparent;
+}
+
+QScrollBar {
+    background-color: rgba(17, 45, 78, 0.7);
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle {
+    background-color: #64d2ff;
+    border-radius: 3px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+#pressureValueLabel, #leakValueLabel {
+    font-size: 24px;
+    font-weight: 700;
+    color: #64d2ff;
+    text-shadow: 0 0 8px rgba(100, 210, 255, 0.5);
+}
+
+#pressureLabel, #leakLabel {
+    font-size: 15px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+
+
+#currentProductIdValue {
+    background: rgba(10, 25, 41, 0.9);
+    border: 1px solid #00e676;
+    border-radius: 2px;
+    padding: 0px 4px;
+    color: #00e676;
+    font-size: 18px;
+    font-weight: 600;
+    min-width: 150px;
+}
+
+#currentProductIdLabel {
+    font-size: 14px;
+    color: #ffffff;
+}
+
+#productIdLabel {
+    font-size: 14px;
+    color: #ffffff;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="testResultFrame">
+     <layout class="QVBoxLayout" name="testResultFrameLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="summaryItemsLayout">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="resultFrame1">
+          <layout class="QHBoxLayout" name="horizontalLayout_result1">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="resultLabel1">
+             <property name="text">
+              <string>测试总数</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="resultValue1">
+             <property name="text">
+              <string>2</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="resultFrame2">
+          <layout class="QHBoxLayout" name="horizontalLayout_result2">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="resultLabel2">
+             <property name="text">
+              <string>通过数</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="resultValue2">
+             <property name="text">
+              <string>1</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="resultFrame3">
+          <layout class="QHBoxLayout" name="horizontalLayout_result3">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="resultLabel3">
+             <property name="text">
+              <string>不通过数</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="resultValue3">
+             <property name="text">
+              <string>1</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="resultFrame4">
+          <layout class="QHBoxLayout" name="horizontalLayout_result4">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="resultLabel4">
+             <property name="text">
+              <string>通过率</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="resultValue4">
+             <property name="text">
+              <string>50.0%</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="runningParamsFrame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="runningParamsLayout">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="runningParamsTitle">
+        <property name="text">
+         <string>⚙️ 运行参数</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="paramsGrid">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="paramFrame7">
+          <layout class="QHBoxLayout" name="horizontalLayout_param7">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel7">
+             <property name="text">
+              <string>程序号</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue7">
+             <property name="text">
+              <string>1</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="paramFrame1">
+          <layout class="QHBoxLayout" name="horizontalLayout_param1">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel1">
+             <property name="text">
+              <string>填充时间</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue1">
+             <property name="text">
+              <string>15s</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="paramFrame2">
+          <layout class="QHBoxLayout" name="horizontalLayout_param2">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel2">
+             <property name="text">
+              <string>稳定时间</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue2">
+             <property name="text">
+              <string>15s</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="paramFrame3">
+          <layout class="QHBoxLayout" name="horizontalLayout_param3">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel3">
+             <property name="text">
+              <string>测试时间</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue3">
+             <property name="text">
+              <string>15s</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="paramFrame4">
+          <layout class="QHBoxLayout" name="horizontalLayout_param4">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel4">
+             <property name="text">
+              <string>排气时间</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue4">
+             <property name="text">
+              <string>8s</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="paramFrame5">
+          <layout class="QHBoxLayout" name="horizontalLayout_param5">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="paramLabel5">
+             <property name="text">
+              <string>填充压力</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="paramValue5">
+             <property name="text">
+              <string>55KPa</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="middleSectionLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QFrame" name="realtimeDataPanel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <layout class="QVBoxLayout" name="realtimeDataLayout">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="realtimeDataTitle">
+          <property name="text">
+           <string>📊 实时数据</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="productInfoLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="productIdLabel">
+            <property name="text">
+             <string>产品编号:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="productIdLineEdit">
+            <property name="placeholderText">
+             <string>请输入产品编号</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="scanRequiredCheckBox">
+            <property name="text">
+             <string>必须扫码</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="currentProductIdLayout">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="currentProductIdLabel">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>当前编号:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="currentProductIdValue">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>---</string>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="pressureDataHLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="pressureLabel">
+            <property name="text">
+             <string>压力值:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="pressureValueLabel">
+            <property name="text">
+             <string>0.00 Pa</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="leakLabel">
+            <property name="text">
+             <string>泄露值:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="leakValueLabel">
+            <property name="text">
+             <string>0.00 mL/min</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QFrame" name="processStatus">
+          <layout class="QVBoxLayout" name="processStatusLayout">
+           <property name="spacing">
+            <number>3</number>
+           </property>
+           <property name="leftMargin">
+            <number>6</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="statusText">
+             <property name="text">
+              <string>🔄 当前状态: 待机</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QProgressBar" name="testProgressBar">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+             <property name="value">
+              <number>0</number>
+             </property>
+             <property name="format">
+              <string>%p%</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="leakDataHLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="fullScreenButton">
+            <property name="text">
+             <string>📊 查看曲线</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QFrame" name="resultItem4">
+          <layout class="QVBoxLayout" name="verticalLayout_total">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="totalTitle">
+             <property name="styleSheet">
+              <string notr="true">font-size: 15px; font-weight: 700; color: #ff9800; border-bottom: 2px solid #ff9800; padding-bottom: 4px;</string>
+             </property>
+             <property name="text">
+              <string>总测试结果</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="totalRow1">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="resultLabel14">
+               <property name="text">
+                <string>综合结果:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="resultValue14">
+               <property name="styleSheet">
+                <string notr="true">font-size: 16px; font-weight: 700; color: #00e676; padding: 3px 10px; border-radius: 4px; background: rgba(0, 230, 118, 0.15); border: 2px solid #00e676;</string>
+               </property>
+               <property name="text">
+                <string>--</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QFrame" name="testResultContainer">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>3</verstretch>
+        </sizepolicy>
+       </property>
+       <layout class="QVBoxLayout" name="testResultLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="resultTitle">
+          <property name="text">
+           <string>📋 三次测试结果</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="resultItemsLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="resultItem1">
+            <layout class="QVBoxLayout" name="verticalLayout_test1">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="test1Title">
+               <property name="styleSheet">
+                <string notr="true">font-size: 14px; font-weight: 600; color: #64d2ff; border-bottom: 1px solid rgba(100, 210, 255, 0.3); padding-bottom: 2px;</string>
+               </property>
+               <property name="text">
+                <string>测试1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test1Row1">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel5">
+                 <property name="text">
+                  <string>压力值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue5">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test1Row2">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel6">
+                 <property name="text">
+                  <string>泄漏值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue6">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test1Row3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel7">
+                 <property name="text">
+                  <string>结果:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue7">
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 13px; font-weight: 600; color: #00e676; padding: 2px 6px; border-radius: 3px; background: rgba(0, 230, 118, 0.1); border: 1px solid #00e676;</string>
+                 </property>
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="resultItem2">
+            <layout class="QVBoxLayout" name="verticalLayout_test2">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="test2Title">
+               <property name="styleSheet">
+                <string notr="true">font-size: 14px; font-weight: 600; color: #64d2ff; border-bottom: 1px solid rgba(100, 210, 255, 0.3); padding-bottom: 2px;</string>
+               </property>
+               <property name="text">
+                <string>测试2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test2Row1">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel8">
+                 <property name="text">
+                  <string>压力值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue8">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test2Row2">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel9">
+                 <property name="text">
+                  <string>泄漏值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue9">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test2Row3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel10">
+                 <property name="text">
+                  <string>结果:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue10">
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 13px; font-weight: 600; color: #00e676; padding: 2px 6px; border-radius: 3px; background: rgba(0, 230, 118, 0.1); border: 1px solid #00e676;</string>
+                 </property>
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="resultItem3">
+            <layout class="QVBoxLayout" name="verticalLayout_test3">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>3</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="test3Title">
+               <property name="styleSheet">
+                <string notr="true">font-size: 14px; font-weight: 600; color: #64d2ff; border-bottom: 1px solid rgba(100, 210, 255, 0.3); padding-bottom: 2px;</string>
+               </property>
+               <property name="text">
+                <string>测试3</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test3Row1">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel11">
+                 <property name="text">
+                  <string>压力值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue11">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test3Row2">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel12">
+                 <property name="text">
+                  <string>泄漏值:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue12">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="test3Row3">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="resultLabel13">
+                 <property name="text">
+                  <string>结果:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="resultValue13">
+                 <property name="styleSheet">
+                  <string notr="true">font-size: 13px; font-weight: 600; color: #00e676; padding: 2px 6px; border-radius: 3px; background: rgba(0, 230, 118, 0.1); border: 1px solid #00e676;</string>
+                 </property>
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

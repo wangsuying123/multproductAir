@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AboutPage</class>
+ <widget class="QWidget" name="AboutPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>关于</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* 全局样式 - 赛博朋克暗青蓝主题 */
+QWidget#AboutPage {
+    background-color: #0a1929;
+    font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif;
+    font-size: 18px;
+    color: #e2e8f0;
+}
+
+/* 主内容卡片 */
+QWidget#contentCard {
+    background: rgba(17, 45, 78, 0.9);
+    border: 1px solid rgba(100, 210, 255, 0.4);
+    border-radius: 20px;
+}
+
+/* Logo区域 */
+QLabel#logoLabel {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1e5f74, stop:1 #3282b8);
+    border-radius: 30px;
+    border: 3px solid #64d2ff;
+    color: #64d2ff;
+    font-size: 38px;
+    font-weight: bold;
+}
+
+/* 标题样式 */
+QLabel#titleLabel {
+    color: #64d2ff;
+    font-size: 34px;
+    font-weight: bold;
+    background: transparent;
+}
+
+/* 副标题/产品名 */
+QLabel#productLabel {
+    color: #97e7ff;
+    font-size: 20px;
+    font-weight: 500;
+    background: transparent;
+}
+
+/* 版本标签 - 胶囊样式 */
+QLabel#versionLabel {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e5f74, stop:1 #3282b8);
+    color: #64d2ff;
+    border: 2px solid #64d2ff;
+    border-radius: 14px;
+    padding: 6px 20px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* 描述文字 */
+QLabel#descriptionLabel {
+    color: #b8c5d6;
+    font-size: 18px;
+    line-height: 1.8;
+    padding: 10px 20px;
+    background: transparent;
+}
+
+/* 分割线 */
+QFrame#dividerLine {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 transparent, stop:0.2 #3282b8, stop:0.8 #3282b8, stop:1 transparent);
+    max-height: 2px;
+    min-height: 2px;
+}
+
+/* 特性标签 */
+QLabel#feature1, QLabel#feature2, QLabel#feature3, QLabel#feature4 {
+    background: rgba(100, 210, 255, 0.1);
+    color: #64d2ff;
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+/* 信息卡片 */
+QWidget#companyCard, QWidget#contactCard {
+    background: rgba(10, 25, 41, 0.8);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 16px;
+}
+
+/* 信息卡片图标 */
+QLabel#companyIcon, QLabel#contactIcon {
+    font-size: 24px;
+    background: transparent;
+}
+
+/* 信息卡片标题 */
+QLabel#companyTitle, QLabel#contactTitle {
+    color: #94a3b8;
+    font-size: 17px;
+    background: transparent;
+}
+
+/* 信息卡片内容 */
+QLabel#companyLabel {
+    color: #e2e8f0;
+    font-size: 19px;
+    font-weight: 600;
+    background: transparent;
+}
+
+QLabel#contactLabel {
+    color: #64d2ff;
+    font-size: 19px;
+    font-weight: 600;
+    background: transparent;
+}
+
+/* 底部装饰条 */
+QLabel#bottomDecor {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e5f74, stop:0.5 #64d2ff, stop:1 #1e5f74);
+    border-radius: 2px;
+    max-height: 4px;
+    min-height: 4px;
+}
+
+/* 版权信息 */
+QLabel#copyrightLabel {
+    color: #64748b;
+    font-size: 17px;
+    background: transparent;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <property name="bottomMargin">
+    <number>20</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="contentCard" native="true">
+     <layout class="QVBoxLayout" name="cardLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>25</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>25</number>
+      </property>
+      <property name="bottomMargin">
+       <number>15</number>
+      </property>
+      <!-- 顶部区域：Logo + 标题 -->
+      <item>
+       <layout class="QHBoxLayout" name="headerLayout">
+        <property name="spacing">
+         <number>15</number>
+        </property>
+        <item>
+         <spacer name="headerLeftSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="logoLabel">
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>60</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>智</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="titleInfoLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="titleLabel">
+            <property name="text">
+             <string>智芯气密检测系统</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="productLabel">
+            <property name="text">
+             <string>专业气密性检测解决方案</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="headerRightSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer1">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>15</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 版本标签 -->
+      <item>
+       <layout class="QHBoxLayout" name="versionLayout">
+        <item>
+         <spacer name="versionLeftSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="versionLabel">
+          <property name="minimumSize">
+           <size>
+            <width>120</width>
+            <height>28</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>  v1.0.0  </string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="versionRightSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>18</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 分割线 -->
+      <item>
+       <widget class="QFrame" name="dividerLine">
+        <property name="frameShape">
+         <enum>QFrame::HLine</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="spacer3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>15</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 产品描述 -->
+      <item>
+       <widget class="QLabel" name="descriptionLabel">
+        <property name="text">
+         <string>智芯气密检测系统是一款专业的气密性检测设备控制系统，用于各种产品的气密性检测。系统具有高精度、高可靠性和易操作性等特点，集成了先进的传感技术和智能算法，为工业生产提供高效、准确的气密性检测解决方案，助力企业实现智能制造升级。</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="spacer4">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>18</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 特性标签区域 -->
+      <item>
+       <layout class="QHBoxLayout" name="featuresLayout">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <item>
+         <spacer name="featuresLeftSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="feature1">
+          <property name="text">
+           <string>🎯 高精度检测</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="feature2">
+          <property name="text">
+           <string>⚡ 快速响应</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="feature3">
+          <property name="text">
+           <string>🛡️ 稳定可靠</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="feature4">
+          <property name="text">
+           <string>📊 智能分析</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="featuresRightSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer5">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 信息卡片区域 -->
+      <item>
+       <layout class="QHBoxLayout" name="infoCardsLayout">
+        <property name="spacing">
+         <number>20</number>
+        </property>
+        <item>
+         <spacer name="cardsLeftSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QWidget" name="companyCard" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>90</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="companyCardLayout">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="leftMargin">
+            <number>15</number>
+           </property>
+           <property name="topMargin">
+            <number>10</number>
+           </property>
+           <property name="rightMargin">
+            <number>15</number>
+           </property>
+           <property name="bottomMargin">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="companyIcon">
+             <property name="text">
+              <string>🏢</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="companyTitle">
+             <property name="text">
+              <string>开发公司</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="companyLabel">
+             <property name="text">
+              <string>东莞智芯数字科技有限公司</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="contactCard" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>90</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="contactCardLayout">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="leftMargin">
+            <number>15</number>
+           </property>
+           <property name="topMargin">
+            <number>10</number>
+           </property>
+           <property name="rightMargin">
+            <number>15</number>
+           </property>
+           <property name="bottomMargin">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="contactIcon">
+             <property name="text">
+              <string>📞</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="contactTitle">
+             <property name="text">
+              <string>联系方式</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="contactLabel">
+             <property name="text">
+              <string>13798574132 徐总</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="cardsRightSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer6">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>25</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 底部装饰条 -->
+      <item>
+       <widget class="QLabel" name="bottomDecor">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>4</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>4</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="spacer7">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>12</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <!-- 版权信息 -->
+      <item>
+       <widget class="QLabel" name="copyrightLabel">
+        <property name="text">
+         <string>© 2025 东莞智芯数字科技有限公司. All rights reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

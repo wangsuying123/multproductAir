@@ -1,0 +1,859 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainControlSetting</class>
+ <widget class="QWidget" name="MainControlSetting">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>主控板参数设置</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* 全局样式 - 赛博朋克暗青蓝背景 */
+QWidget#MainControlSetting {
+    background-color: #0a1929;
+    font-family: 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+    font-size: 16px;
+    color: #e2e8f0;
+}
+
+/* 滚动区域背景 */
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QWidget#scrollAreaWidgetContents {
+    background-color: #0a1929;
+}
+
+/* 状态栏框架 - 青蓝渐变 */
+QFrame#statusFrame {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #112d4e, stop:0.5 #1e5f74, stop:1 #3282b8);
+    border-radius: 10px;
+    border: 1px solid #3282b8;
+    min-height: 50px;
+    max-height: 60px;
+}
+
+/* 状态标签样式 */
+QLabel#label, QLabel#label_2, QLabel#label_3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f8fafc;
+    min-width: 70px;
+    max-width: 100px;
+    background: transparent;
+}
+
+QLabel#airTightStatusLabel, QLabel#mainBoardStatusLabel, QLabel#pressureRegulatorStatusLabel {
+    font-size: 20px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    min-width: 70px;
+    text-align: center;
+}
+
+/* 分组框样式 - 玻璃态科技面板 */
+QGroupBox {
+    font-weight: bold;
+    font-size: 16px;
+    color: #64d2ff;
+    border: 1px solid rgba(100, 210, 255, 0.4);
+    border-radius: 12px;
+    margin-top: 12px;
+    padding: 10px 10px 10px 10px;
+    background: rgba(17, 45, 78, 0.8);
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 20px;
+    padding: 0 12px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #112d4e, stop:1 #1e5f74);
+    border-radius: 6px;
+    color: #64d2ff;
+}
+
+/* 控制区标签样式 */
+QLabel#label_4, QLabel#label_5, QLabel#label_6, QLabel#label_7, QLabel#label_8, QLabel#label_9, QLabel#label_10, QLabel#label_11, QLabel#label_12, QLabel#label_13, QLabel#label_14 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e2e8f0;
+    min-width: 80px;
+    background: transparent;
+    padding: 6px 0;
+}
+
+/* 下拉框样式 - 科技感 */
+QComboBox {
+    background: rgba(17, 45, 78, 0.9);
+    border: 2px solid #64d2ff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 100px;
+    color: #f8fafc;
+}
+
+QComboBox:hover {
+    border-color: #97e7ff;
+    background: rgba(26, 58, 92, 0.9);
+}
+
+QComboBox:focus {
+    border-color: #00e676;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+    background: transparent;
+}
+
+QComboBox::down-arrow {
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox QAbstractItemView {
+    background: #112d4e;
+    border: 1px solid #64d2ff;
+    border-radius: 6px;
+    color: #f8fafc;
+    selection-background-color: #3282b8;
+}
+
+/* 测试通道开按钮样式 - 荧光绿 */
+QPushButton#testChannel1OpenButton, QPushButton#testChannel2OpenButton, QPushButton#testChannel3OpenButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #00e676, stop:1 #00c853);
+    color: white;
+    border: 2px solid #00e676;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 70px;
+    min-height: 36px;
+}
+
+QPushButton#testChannel1OpenButton:hover, QPushButton#testChannel2OpenButton:hover, QPushButton#testChannel3OpenButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #69f0ae, stop:1 #00e676);
+    border-color: #69f0ae;
+}
+
+QPushButton#testChannel1OpenButton:pressed, QPushButton#testChannel2OpenButton:pressed, QPushButton#testChannel3OpenButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #00c853, stop:1 #00a844);
+}
+
+/* 测试通道关按钮样式 - 霓虹红 */
+QPushButton#testChannel1CloseButton, QPushButton#testChannel2CloseButton, QPushButton#testChannel3CloseButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #ff5252, stop:1 #d32f2f);
+    color: white;
+    border: 2px solid #ff5252;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 70px;
+    min-height: 36px;
+}
+
+QPushButton#testChannel1CloseButton:hover, QPushButton#testChannel2CloseButton:hover, QPushButton#testChannel3CloseButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #ff8a80, stop:1 #ff5252);
+    border-color: #ff8a80;
+}
+
+QPushButton#testChannel1CloseButton:pressed, QPushButton#testChannel2CloseButton:pressed, QPushButton#testChannel3CloseButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #d32f2f, stop:1 #b71c1c);
+}
+
+/* 确定按钮样式 - 亮青蓝 */
+QPushButton#confirmButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #42a5f5, stop:1 #1e88e5);
+    color: white;
+    border: 2px solid #42a5f5;
+    border-radius: 8px;
+    padding: 8px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 90px;
+    min-height: 36px;
+}
+
+QPushButton#confirmButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #64b5f6, stop:1 #42a5f5);
+    border-color: #64b5f6;
+}
+
+QPushButton#confirmButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y1:1, stop:0 #1e88e5, stop:1 #1565c0);
+}
+
+/* 分隔线样式 */
+QFrame#line {
+    background-color: rgba(100, 210, 255, 0.3);
+    max-height: 2px;
+    min-height: 2px;
+    border: none;
+}
+
+/* 控制行框架样式 */
+QFrame#controlRow1, QFrame#controlRow2 {
+    background: rgba(10, 25, 41, 0.6);
+    border: 1px solid rgba(100, 210, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+QFrame#controlRow1:hover, QFrame#controlRow2:hover {
+    background: rgba(17, 45, 78, 0.8);
+    border-color: rgba(100, 210, 255, 0.4);
+}
+
+/* 滚动条样式 */
+QScrollBar:vertical {
+    background: rgba(17, 45, 78, 0.5);
+    width: 10px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: #64d2ff;
+    border-radius: 5px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #97e7ff;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1024</width>
+        <height>600</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <property name="leftMargin">
+        <number>15</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>15</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="statusFrame">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <layout class="QHBoxLayout" name="statusLayout">
+          <property name="spacing">
+           <number>15</number>
+          </property>
+          <property name="leftMargin">
+           <number>15</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>15</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item>
+           <spacer name="leftSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="airTightLayout">
+            <property name="spacing">
+             <number>12</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>气密仪：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="airTightStatusLabel">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #ff5252; background: rgba(255, 82, 82, 0.15); border: 1px solid #ff5252; padding: 4px 12px; border-radius: 8px;</string>
+              </property>
+              <property name="text">
+               <string>未连接</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="mainBoardLayout">
+            <property name="spacing">
+             <number>12</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>主控板：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="mainBoardStatusLabel">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #ff5252; background: rgba(255, 82, 82, 0.15); border: 1px solid #ff5252; padding: 4px 12px; border-radius: 8px;</string>
+              </property>
+              <property name="text">
+               <string>未连接</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="pressureLayout">
+            <property name="spacing">
+             <number>12</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>调压装置：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="pressureRegulatorStatusLabel">
+              <property name="font">
+               <font>
+                <family>Microsoft YaHei UI</family>
+                <pointsize>-1</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: #ff5252; background: rgba(255, 82, 82, 0.15); border: 1px solid #ff5252; padding: 4px 12px; border-radius: 8px;</string>
+              </property>
+              <property name="text">
+               <string>未连接</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="rightSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QVBoxLayout" name="groupBoxLayout">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <property name="leftMargin">
+           <number>15</number>
+          </property>
+          <property name="topMargin">
+           <number>15</number>
+          </property>
+          <property name="rightMargin">
+           <number>15</number>
+          </property>
+          <property name="bottomMargin">
+           <number>15</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="controlRow2">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <layout class="QGridLayout" name="testChannelLayout">
+             <property name="leftMargin">
+              <number>20</number>
+             </property>
+             <property name="topMargin">
+              <number>15</number>
+             </property>
+             <property name="rightMargin">
+              <number>20</number>
+             </property>
+             <property name="bottomMargin">
+              <number>15</number>
+             </property>
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="testChannel2CloseButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>关</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_10">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>通道2：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="testChannel1OpenButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>开</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLabel" name="label_13">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>程序号：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="testChannel3OpenButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>开</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>通道1：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="4">
+              <widget class="QComboBox" name="programNumberComboBox3">
+               <property name="minimumSize">
+                <size>
+                 <width>136</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QPushButton" name="testChannel3CloseButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>关</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLabel" name="label_14">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>程序号：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QComboBox" name="programNumberComboBox2">
+               <property name="minimumSize">
+                <size>
+                 <width>136</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="4">
+              <widget class="QComboBox" name="programNumberComboBox1">
+               <property name="minimumSize">
+                <size>
+                 <width>136</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <item>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="testChannel2OpenButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>开</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="testChannel1CloseButton">
+               <property name="minimumSize">
+                <size>
+                 <width>110</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>关</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QLabel" name="label_12">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>程序号：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_11">
+               <property name="font">
+                <font>
+                 <family>Microsoft YaHei UI</family>
+                 <pointsize>-1</pointsize>
+                 <weight>63</weight>
+                </font>
+               </property>
+               <property name="text">
+                <string>通道3：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="bottomSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
