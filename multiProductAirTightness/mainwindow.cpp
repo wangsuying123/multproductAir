@@ -99,7 +99,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 设置MainControlSetting实例到AirtightParamSetting
     airtightParamPage->setMainControlSetting(mainControlSettingPage);
     airtightParamPage->setRealTimeMonitor(realtimeMonitorPage);
-    
+    realtimeMonitorPage->setMainControlSetting(mainControlSettingPage);
+
     // 检测到0006寄存器为1（新测试开始）时，清空RealTimeMonitor的测试结果和图表
     connect(airtightParamPage, &AirtightParamSetting::testStarted,
             realtimeMonitorPage, &RealTimeMonitor::clearTestResult);

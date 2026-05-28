@@ -36,6 +36,8 @@ signals:
     void testChannelChanged(int channel);
     // 寄存器读取错误信号
     void registerReadError(uint16_t addr);
+    // 重新发送启动命令信号（用于阶段检测失败时重发）
+    void reSendStartCommand(int channel);
 
 public:
     explicit RealTimeMonitor(QWidget *parent = nullptr);
@@ -81,12 +83,15 @@ public:
     void stopDataTimers();
     // 启动数据读取定时器（用于通道切换后恢复监控）
     void startDataTimers();
+    // 重置测试阶段状态（用于多通道测试完成后重置）
+    void resetTestPhaseState();
 
 private:
     Ui::RealTimeMonitor *ui;
     QTimer *timeTimer;
     QTimer *dataTimer;
     QTimer *testResultTimer; // 测试结果读取定时器
+    QTimer *m_testTimeoutTimer; // 测试超时检测定时器（用于通道测试无响应时重发启动命令）
 
     // 枚举定义测试进程状态
     enum ProcessStatus {
@@ -96,7 +101,7 @@ private:
         TEST = 768,
         DUMP = 1024
     };
-    
+
     // 折线图相关成员
     QChart *chart;
     QLineSeries *leakSeries;
@@ -105,51 +110,52 @@ private:
     QValueAxis *axisYLeft; // 左边Y轴：压力值
     QValueAxis *axisYRight; // 右边Y轴：泄漏值
     int dataCount;
-    
+
     // Modbus相关成员
     QModbusClient *airTightModbusClient;
     QModbusClient *mainBoardModbusClient;
     QModbusClient *pressureRegulatorModbusClient;
-    
+
     int airTightSlaveId;
     int mainBoardSlaveId;
     int pressureRegulatorSlaveId;
-    
+
     // 状态相关成员
     bool isConnected;
     bool isMonitoring;
     bool m_isCommunicationError; // 通信错误状态标志
+    bool m_isReadingData; // 是否正在读取数据（用于防止Modbus通信冲突）
     quint16 register8707Value;
     int programNumber; // 当前程序号
     int m_currentTestingChannel; // 当前测试通道（1、2、3）
-    
+
     // 通道测试结果跟踪（用于计算总测试结果）
     QMap<int, bool> channelTestResults; // key: channel(1-3), value: 是否通过
-    
+
     // 当前操作员信息
     QString currentOperatorName;
     QString currentOperatorRole;
-    
+
     // 主控设置页面指针
     MainControlSetting *m_mainControlSetting;
-    
+
     // 产品编号和扫码设置
     QString productId;
     bool scanRequired;
-    
+
     // 数据库相关成员
     AirTightnessParamsDao *m_airTightnessParamsDao;
-    
+
     // ChartDialog 相关成员
     ChartDialog *chartDialog;
-    
+
     // 数据处理相关成员函数
     void readRealTimeData();
     void readTestResultData(); // 读取测试结果数据
     void processMainRegisterData(const QModbusDataUnit &data);
     void readDeviceDataAsync(quint16 address, quint16 count, QModbusDataUnit::RegisterType type, const std::function<void(bool, const QModbusDataUnit&)> &callback, int retryCount = 0);
     void processTestResultData(const QModbusDataUnit &data);
-    
+
     // 辅助函数
     void updateTestStatus(int processValue);
     // 更新测试结果汇总统计
@@ -160,6 +166,10 @@ private:
     void calculateAndUpdateTotalResult();
     // 更新通信错误UI显示
     void updateCommunicationErrorUI();
+    // 强制检测测试阶段（解决通道2/3阶段无变化问题）
+    void forceDetectTestPhase();
+
+    quint16 m_lastReg9088Value = 0; // 记录上一次读取的寄存器9088值
 };
 
 #endif // REALTIMEMONITOR_H

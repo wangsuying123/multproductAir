@@ -16,6 +16,7 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     timeTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
     testResultTimer(new QTimer(this)),
+    m_testTimeoutTimer(new QTimer(this)),
     dataCount(0),
     airTightModbusClient(nullptr),
     mainBoardModbusClient(nullptr),
@@ -26,6 +27,7 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     programNumber(1),
     m_currentTestingChannel(0),
     m_isCommunicationError(false),
+    m_isReadingData(false),
     m_mainControlSetting(nullptr),
     m_airTightnessParamsDao(new AirTightnessParamsDao())
 {
@@ -54,10 +56,10 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     connect(dataTimer, &QTimer::timeout, this, &RealTimeMonitor::updateData);
     connect(testResultTimer, &QTimer::timeout, this, &RealTimeMonitor::readTestResultData);
 
-    // 启动定时器，1秒更新一次时间，1000毫秒更新一次数据（实时发送到客户端）
+    // 启动定时器，1秒更新一次时间，2000毫秒更新一次数据（降低通信频率，避免冲突）
     timeTimer->start(1000);
-    dataTimer->start(1000);  // 1秒更新一次实时数据
-    testResultTimer->start(500); // 500毫秒读取一次测试结果，更快响应
+    dataTimer->start(2000);  // 修改为2秒更新一次实时数据，减少Modbus通信压力
+    testResultTimer->start(1000); // 1秒读取一次测试结果
 
     // 初始化时间显示
     updateTime();
@@ -173,6 +175,7 @@ RealTimeMonitor::~RealTimeMonitor()
     delete timeTimer;
     delete dataTimer;
     delete testResultTimer;
+    delete m_testTimeoutTimer;
     
     // 释放折线图资源
     delete leakSeries;
@@ -441,6 +444,12 @@ bool RealTimeMonitor::writeDeviceData(quint16 address, quint16 value, QModbusDat
 
 void RealTimeMonitor::readRealTimeData()
 {
+    // 检查是否正在读取数据，避免Modbus通信冲突
+    if (m_isReadingData) {
+        LOG_DEBUG("正在读取数据中，跳过本次实时数据读取", "实时监控");
+        return;
+    }
+
     // 检查airTightModbusClient是否为空，启动时可能还未初始化，跳过本次读取
     if (!airTightModbusClient) {
         // 静默处理，避免启动时弹出大量错误提示
@@ -456,9 +465,12 @@ void RealTimeMonitor::readRealTimeData()
 
     LOG_DEBUG("开始读取气密仪实时数据...", "实时监控");
 
+    m_isReadingData = true;
+
     // 异步读取主要数据（寄存器8705-8717）
     readDeviceDataAsync(8705, 13, QModbusDataUnit::HoldingRegisters,
                         [this](bool success, const QModbusDataUnit &data) {
+                            m_isReadingData = false;
                             if (success) {
                                 //LOG_DEBUG("成功读取气密仪寄存器数据", "实时监控");
                                 // 处理主要寄存器数据
@@ -472,6 +484,12 @@ void RealTimeMonitor::readRealTimeData()
 // 实时读取测试结果数据
 void RealTimeMonitor::readTestResultData()
 {
+    // 检查是否正在读取数据，避免Modbus通信冲突
+    if (m_isReadingData) {
+        LOG_DEBUG("正在读取数据中，跳过本次测试结果读取", "实时监控");
+        return;
+    }
+
     // 检查airTightModbusClient是否为空
     if (!airTightModbusClient) {
         return;
@@ -481,21 +499,29 @@ void RealTimeMonitor::readTestResultData()
         return;
     }
 
+    m_isReadingData = true;
+
     // 读取寄存器9088-9100的测试结果数据
     readDeviceDataAsync(9088, 13, QModbusDataUnit::HoldingRegisters,
         [this](bool readSuccess, const QModbusDataUnit &data) {
+            m_isReadingData = false;
             if (readSuccess) {
                 quint16 reg9088Value = data.value(0);
-                // 只在状态变化时记录日志，避免日志过多
-                static quint16 lastReg9088Value = 0;
-                if (reg9088Value != lastReg9088Value) {
-                    LOG_INFO(QString("寄存器9088值变化：%1 -> %2（需要等于256才处理测试结果）").arg(lastReg9088Value).arg(reg9088Value), "实时监控");
-                    lastReg9088Value = reg9088Value;
-                }
-                // 9088等于256时处理测试结果
-                if (reg9088Value == 256) {
-                    LOG_INFO("寄存器9088=256，开始处理测试结果", "实时监控");
+                
+                // 寄存器9088只有两个状态：
+                // 0：未测试或测试未完成
+                // 256：测试完成，可以读取结果
+                
+                // 只有当从0变为256时才处理测试结果
+                // 避免从256变回0时重复触发
+                if (reg9088Value == 256 && m_lastReg9088Value == 0) {
+                    LOG_INFO("寄存器9088从0变为256，测试完成，开始处理测试结果", "实时监控");
                     processTestResultData(data);
+                    m_lastReg9088Value = reg9088Value;
+                } else if (reg9088Value != m_lastReg9088Value) {
+                    // 记录状态变化但不处理
+                    LOG_INFO(QString("测试阶段变化：%1 -> %2").arg(m_lastReg9088Value).arg(reg9088Value), "实时监控");
+                    m_lastReg9088Value = reg9088Value;
                 }
             } else {
                 LOG_DEBUG("读取测试结果寄存器9088-9100失败", "实时监控");
@@ -538,7 +564,6 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
         bool atmPressureUnitRead = false;
         bool temperatureValueRead = false;
         bool temperatureUnitRead = false;
-        bool allReadSuccess = true;
 
         // 提取各个寄存器的值
         try {
@@ -556,14 +581,7 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
             if (data.valueCount() > 12) { temperatureUnit = data.value(12); temperatureUnitRead = true; } // 单位 - 地址8717
         } catch (const std::exception& e) {
             LOG_ERROR(QString("解析寄存器值时发生异常: %1").arg(e.what()), "实时监控");
-            allReadSuccess = false;
         }
-
-        // 检查是否所有必要的参数都读取成功
-        allReadSuccess = deviceStatusRead && processValueRead && pressureValueRead &&
-                         pressureHighValueRead && pressureUnitRead && leakValueRead && leakValue2Read && leakUnitRead &&
-                         atmPressureValueRead && atmPressureUnitRead &&
-                         temperatureValueRead && temperatureUnitRead;
 
         // 压力值计算：合并高低16位，转换为实际值
         double pressure = 0.0;
@@ -571,7 +589,9 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
         // 泄露值计算
         double leak = 0.0;
         QString leakUnitStr = ""; // 泄漏单位字符串
-        if (allReadSuccess) {
+        
+        // 只要压力相关参数读取成功就更新压力值显示
+        if (pressureValueRead && pressureHighValueRead) {
             // 1. 压力值参数解码：低位(8708)和高位(8709)分别字节交换，根据高位是否为0选择缩放因子
             auto swap16 = [](quint16 v) -> quint16 { return static_cast<quint16>((v << 8) | (v >> 8)); };
             quint16 lowOrig = swap16(pressureValue);      // 8708 低位原始值
@@ -580,14 +600,26 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
             qint32 raw = static_cast<qint32>((static_cast<quint32>(highOrig) << 16) | static_cast<quint32>(lowOrig));
             pressure = static_cast<double>(raw) / 1000.0;
 
-            // 根据pressureUnit获取对应的字符串表示
+            // 更新当前测试进程面板中的实时压力值显示
+            if (ui->pressureValueLabel) {
+                ui->pressureValueLabel->setText(QString::number(pressure, 'f', 2));
+            }
+        }
+        
+        // 根据pressureUnit获取对应的字符串表示
+        if (pressureUnitRead) {
             PressureUnit pressureUnitEnum = PressureUnitHelper::fromInt(static_cast<int>(pressureUnit));
             pressureUnitStr = PressureUnitHelper::toString(pressureUnitEnum);
+        }
             
-            // 根据leakUnit获取对应的字符串表示
+        // 根据leakUnit获取对应的字符串表示
+        if (leakUnitRead) {
             LeakUnit leakUnitEnum = LeakUnitHelper::fromInt(static_cast<int>(leakUnit));
             leakUnitStr = LeakUnitHelper::toString(leakUnitEnum);
+        }
 
+        // 只要泄漏相关参数读取成功就更新泄漏值显示
+        if (leakValueRead && leakValue2Read && leakUnitRead) {
             // 2. 泄漏值处理 - 使用两个寄存器进行字节交换后相减并按1000缩放
             quint16 r1 = leakValue;   // 寄存器8711
             quint16 r2 = leakValue2;  // 寄存器8712
@@ -597,20 +629,17 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
             int16_t r1Signed = static_cast<int16_t>(r1Swapped);
             int16_t r2Signed = static_cast<int16_t>(r2Swapped);
             // 如果泄露单位是Pa，就除以10，否则就直接除1000
+            LeakUnit leakUnitEnum = LeakUnitHelper::fromInt(static_cast<int>(leakUnit));
             if (leakUnitEnum == LeakUnit::Pa) {
                 leak = static_cast<double>(static_cast<int32_t>(r1Signed) - static_cast<int32_t>(r2Signed)) / 10.0;
             } else {
                 leak = static_cast<double>(static_cast<int32_t>(r1Signed) - static_cast<int32_t>(r2Signed)) / 1000.0;
             }
            
-            // 更新当前测试进程面板中的实时数据显示
-            if (ui->pressureValueLabel) {
-                ui->pressureValueLabel->setText(QString::number(pressure, 'f', 2));
-            }
+            // 更新当前测试进程面板中的实时泄漏值显示
             if (ui->leakValueLabel) {
                 ui->leakValueLabel->setText(QString::number(leak, 'f', 2));
             }
-
         }
 
         // 更新测试进程状态
@@ -618,27 +647,23 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
             updateTestStatus(processValue);
         }
 
-       // 如果读取失败，记录错误但不使用默认值，保持上次成功读取的值
-        if (!allReadSuccess) {
-            QStringList failedParams;
-            if (!deviceStatusRead) failedParams.append("设备状态 (寄存器8706)");
-            if (!processValueRead) failedParams.append("测试进程 (寄存器8707)");
-            if (!pressureValueRead) failedParams.append("压力值 (寄存器8708)");
-            if (!pressureUnitRead) failedParams.append("压力单位 (寄存器8710)");
-            if (!leakValueRead) failedParams.append("泄露值 (寄存器8711)");
-            if (!leakValue2Read) failedParams.append("泄露值2 (寄存器8712)");
-            if (!leakUnitRead) failedParams.append("泄漏单位 (寄存器8713)");
-            if (!atmPressureValueRead) failedParams.append("标准大气压 (寄存器8714)");
-            if (!atmPressureUnitRead) failedParams.append("大气压单位 (寄存器8715)");
-            if (!temperatureValueRead) failedParams.append("温度值 (寄存器8716)");
-            if (!temperatureUnitRead) failedParams.append("温度单位 (寄存器8717)");
+        // 记录读取失败的参数
+        QStringList failedParams;
+        if (!deviceStatusRead) failedParams.append("设备状态 (寄存器8706)");
+        if (!processValueRead) failedParams.append("测试进程 (寄存器8707)");
+        if (!pressureValueRead) failedParams.append("压力值 (寄存器8708)");
+        if (!pressureHighValueRead) failedParams.append("压力高位 (寄存器8709)");
+        if (!pressureUnitRead) failedParams.append("压力单位 (寄存器8710)");
+        if (!leakValueRead) failedParams.append("泄露值 (寄存器8711)");
+        if (!leakValue2Read) failedParams.append("泄露值2 (寄存器8712)");
+        if (!leakUnitRead) failedParams.append("泄漏单位 (寄存器8713)");
+        if (!atmPressureValueRead) failedParams.append("标准大气压 (寄存器8714)");
+        if (!atmPressureUnitRead) failedParams.append("大气压单位 (寄存器8715)");
+        if (!temperatureValueRead) failedParams.append("温度值 (寄存器8716)");
+        if (!temperatureUnitRead) failedParams.append("温度单位 (寄存器8717)");
 
+        if (!failedParams.isEmpty()) {
             LOG_WARNING(QString("以下参数读取失败，保持上次读取的值: %1").arg(failedParams.join(", ")), "实时监控");
-            
-            // 只有在processValue读取成功时才更新测试进程状态
-            if (!processValueRead) {
-                return;
-            }
         }
 
         QString processName;
@@ -1096,41 +1121,6 @@ void RealTimeMonitor::updateTestStatus(int processValue)
         mainBoardCommandSent = false; // 重置命令发送标记
         
         LOG_INFO(QString("测试阶段变化: %1 -> %2").arg(previousStage).arg(processValue), "实时监控");
-        
-        // 根据新阶段发送主控板命令
-        switch (processValue) {
-        case ProcessStatus::FILL:
-            // 充气阶段：0002写入1, 0003写入0
-            LOG_INFO("充气阶段开始，向主控板发送命令: 0002=1, 0003=0", "实时监控");
-            sendMainBoardCommand(0x0002, 0x0001, 500);
-            sendMainBoardCommand(0x0003, 0x0000, 500);
-            mainBoardCommandSent = true;
-            break;
-        // case ProcessStatus::STB:
-        //     // 保压阶段：0002写入1, 0003写入0
-        //     LOG_INFO("保压阶段开始，向主控板发送命令: 0002=1, 0003=0", "实时监控");
-        //     sendMainBoardCommand(0x0002, 0x0001, 500);
-        //     sendMainBoardCommand(0x0003, 0x0000, 500);
-        //     mainBoardCommandSent = true;
-        //     break;
-        // case ProcessStatus::TEST:
-        //     // 测试阶段：0002写入1, 0003写入0
-        //     LOG_INFO("测试阶段开始，向主控板发送命令: 0002=1, 0003=0", "实时监控");
-        //     sendMainBoardCommand(0x0002, 0x0001, 500);
-        //     sendMainBoardCommand(0x0003, 0x0000, 500);
-        //     mainBoardCommandSent = true;
-        //     break;
-        // case ProcessStatus::DUMP:
-        //     // 排气阶段：0002写入0, 0003写入1
-        //     LOG_INFO("排气阶段开始，向主控板发送命令: 0002=0, 0003=1", "实时监控");
-        //     sendMainBoardCommand(0x0002, 0x0000, 500);
-        //     sendMainBoardCommand(0x0003, 0x0001, 500);
-        //     mainBoardCommandSent = true;
-        //     break;
-        default:
-            // 待机或其他状态，不发送命令
-            break;
-        }
     }
 
     // 根据processValue设置不同的状态名称、样式和进度
@@ -1265,6 +1255,11 @@ void RealTimeMonitor::updateTestStatus(int processValue)
             LOG_INFO("测试已完成，进度达到100%", "实时监控");
         }
     }
+
+    // 更新当前状态文本显示（根据寄存器8707的值更新）
+    if (ui->statusText) {
+        ui->statusText->setText(QString("🔄 当前状态: %1").arg(processName));
+    }
     } catch (const std::exception& e) {
         LOG_ERROR(QString("更新测试状态时发生异常: %1").arg(e.what()), "实时监控");
     } catch (...) {
@@ -1301,17 +1296,20 @@ void RealTimeMonitor::updateTestResultSummary()
             if (ui->resultValue1) {
                 ui->resultValue1->setText(QString::number(total));
             }
-            // 更新合格数
+            // 更新合格数 - 绿色显示
             if (ui->resultValue2) {
                 ui->resultValue2->setText(QString::number(pass));
+                ui->resultValue2->setStyleSheet("color: #00e676; text-shadow: 0 0 8px rgba(0, 230, 118, 0.6);");
             }
-            // 更新不合格数
+            // 更新不合格数 - 红色显示
             if (ui->resultValue3) {
                 ui->resultValue3->setText(QString::number(fail));
+                ui->resultValue3->setStyleSheet("color: #ff5252; text-shadow: 0 0 8px rgba(255, 82, 82, 0.6);");
             }
-            // 更新合格率
+            // 更新合格率 - 绿色显示
             if (ui->resultValue4) {
                 ui->resultValue4->setText(QString("%1%").arg(QString::number(passRate, 'f', 1)));
+                ui->resultValue4->setStyleSheet("color: #00e676; text-shadow: 0 0 8px rgba(0, 230, 118, 0.6);");
             }
             
             LOG_DEBUG(QString("更新测试结果汇总：总数=%1, 合格=%2, 不合格=%3, 合格率=%4%")
@@ -1656,11 +1654,41 @@ void RealTimeMonitor::stopDataTimers()
 void RealTimeMonitor::startDataTimers()
 {
     if (dataTimer && !dataTimer->isActive()) {
-        dataTimer->start(1000);
+        dataTimer->start(2000); // 修改为2秒间隔，减少Modbus通信压力
         LOG_DEBUG("数据读取定时器已启动", "实时监控");
     }
     if (testResultTimer && !testResultTimer->isActive()) {
-        testResultTimer->start(500);
+        testResultTimer->start(1000); // 1秒间隔读取测试结果
         LOG_DEBUG("测试结果读取定时器已启动", "实时监控");
     }
+}
+
+// 强制检测测试阶段（解决通道2/3阶段无变化问题）
+void RealTimeMonitor::forceDetectTestPhase()
+{
+    if (!airTightModbusClient || airTightModbusClient->state() != QModbusDevice::ConnectedState) {
+        LOG_WARNING("气密仪未连接，无法执行强制阶段检测", "实时监控");
+        return;
+    }
+    
+    readDeviceDataAsync(9088, 1, QModbusDataUnit::HoldingRegisters,
+        [this](bool success, const QModbusDataUnit &data) {
+            if (success && data.valueCount() > 0) {
+                quint16 phase = data.value(0);
+                LOG_DEBUG(QString("强制检测测试阶段，寄存器9088值: %1").arg(phase), "实时监控");
+                
+                if (phase == 0) {
+                    LOG_WARNING(QString("通道%1阶段仍为0，触发重发启动命令信号").arg(m_currentTestingChannel), "实时监控");
+                    emit reSendStartCommand(m_currentTestingChannel);
+                }
+            } else {
+                LOG_ERROR("强制检测测试阶段失败", "实时监控");
+            }
+        });
+}
+
+void RealTimeMonitor::resetTestPhaseState()
+{
+    m_lastReg9088Value = 0;
+    LOG_DEBUG("测试阶段状态已重置", "实时监控");
 }

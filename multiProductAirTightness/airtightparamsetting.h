@@ -158,6 +158,12 @@ private:
     // 重置气密仪设备状态（通道切换前调用）
     void resetAirtightDeviceState();
     
+    // 等待气密仪进入待机状态
+    void waitForDeviceStandby();
+    
+    // 等待设备进入测试状态
+    void waitForTestStart();
+    
     Ui::AirtightParamSetting *ui;
     bool m_airTightConnected; // 保存气密仪连接状态
     bool m_pressureRegulatorConnected; // 保存调压装置连接状态

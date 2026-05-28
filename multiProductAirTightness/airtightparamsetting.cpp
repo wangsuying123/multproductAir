@@ -342,6 +342,16 @@ void AirtightParamSetting::setRealTimeMonitor(RealTimeMonitor *monitor)
 {
     m_realTimeMonitor = monitor;
     LOG_INFO("实时监控页面指针已设置", "气密参数");
+    
+    // 连接重发启动命令信号，用于通道测试阶段异常时的兜底处理
+    if (m_realTimeMonitor) {
+        connect(m_realTimeMonitor, &RealTimeMonitor::reSendStartCommand, this, [this](int channel) {
+            LOG_WARNING(QString("收到重发启动命令信号，通道: %1").arg(channel), "气密参数");
+            if (m_isMultiChannelTesting && m_currentTestingChannel == channel) {
+                startAirtightTest();
+            }
+        });
+    }
 }
 
 // 主控板连接状态变化处理（统一的UI更新方法）
@@ -968,8 +978,17 @@ void AirtightParamSetting::startNextChannelTest()
         LOG_WARNING("【通道测试】m_realTimeMonitor为空，无法停止定时器", "气密参数");
     }
     
-    // 重置气密仪状态（通道切换前必须执行，避免前一通道状态残留）
-    resetAirtightDeviceState();
+    // 新增：等待200ms确保Modbus链路完全释放
+    LOG_DEBUG("【通道测试】等待200ms确保Modbus链路释放", "气密参数");
+    QThread::msleep(200);
+    
+    // 重置实时监控的软件状态，确保下一通道测试结果能被正确处理
+    if (m_realTimeMonitor) {
+        m_realTimeMonitor->resetTestPhaseState();
+    }
+    
+    // 等待气密仪进入待机状态（寄存器8707=0）后再开始下一通道测试
+    waitForDeviceStandby();
     
     if (m_currentChannelIndex >= m_enabledChannels.size()) {
         // 所有通道测试完成
@@ -978,8 +997,9 @@ void AirtightParamSetting::startNextChannelTest()
         m_currentChannelIndex = -1;
         m_currentTestingChannel = 0;
         m_enabledChannels.clear();
-        // 所有测试完成，重新启动定时器
+        // 所有测试完成，重置测试阶段状态，重新启动定时器
         if (m_realTimeMonitor) {
+            m_realTimeMonitor->resetTestPhaseState();
             m_realTimeMonitor->startDataTimers();
         }
         return;
@@ -1069,14 +1089,18 @@ void AirtightParamSetting::startNextChannelTest()
     }
     LOG_DEBUG(QString("【通道测试】通道%1 - 参数发送成功").arg(m_currentTestingChannel), "气密参数");
     
+    // 参数发送后等待300ms，确保设备有足够时间处理参数
+    LOG_DEBUG("【通道测试】等待300ms确保参数处理完成", "气密参数");
+    QThread::msleep(300);
+    
     // 启动气密仪
     LOG_INFO(QString("【通道测试】通道%1 - 参数发送成功，启动气密仪").arg(m_currentTestingChannel), "气密参数");
     bool startSuccess = startAirtightTest();
     LOG_DEBUG(QString("【通道测试】通道%1 - startAirtightTest()返回: %2").arg(m_currentTestingChannel).arg(startSuccess ? "成功" : "失败"), "气密参数");
 
-    // 重新启动实时监控定时器（延迟200ms确保启动命令已发送完成）
+    // 重新启动实时监控定时器（延迟1000ms确保启动命令已发送完成并被设备接收）
     if (m_realTimeMonitor) {
-        QTimer::singleShot(200, this, [this]() {
+        QTimer::singleShot(1000, this, [this]() {
             LOG_DEBUG("【通道测试】重新启动实时监控定时器", "气密参数");
             m_realTimeMonitor->startDataTimers();
         });
@@ -1564,6 +1588,116 @@ bool AirtightParamSetting::startAirtightTest()
 }
 
 // 重置气密仪设备状态（通道切换前调用，清除前一通道状态残留）
+void AirtightParamSetting::waitForDeviceStandby()
+{
+    // 检查气密仪是否连接
+    if (!modbusClient || !m_airTightConnected) {
+        LOG_WARNING("气密仪未连接，跳过等待待机状态", "气密参数");
+        return;
+    }
+    
+    LOG_INFO("【通道切换】等待气密仪进入待机状态", "气密参数");
+    
+    // 等待设备进入待机状态（寄存器8707=0）
+    // 最大等待5秒，每200ms检查一次
+    int waitCount = 0;
+    const int maxWaitCount = 25; // 25 * 200ms = 5秒
+    bool deviceReady = false;
+    
+    while (waitCount < maxWaitCount && !deviceReady) {
+        QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, 8707, 1);
+        QModbusReply *reply = modbusClient->sendReadRequest(readUnit, slaveId);
+        
+        if (reply) {
+            QEventLoop loop;
+            connect(reply, &QModbusReply::finished, &loop, &QEventLoop::quit);
+            QTimer::singleShot(300, &loop, &QEventLoop::quit);
+            loop.exec();
+            
+            if (reply->isFinished() && reply->error() == QModbusDevice::NoError) {
+                QModbusDataUnit result = reply->result();
+                if (result.valueCount() > 0 && result.value(0) == 0) {
+                    deviceReady = true;
+                    LOG_DEBUG("【通道切换】设备已进入待机状态（寄存器8707=0）", "气密参数");
+                } else {
+                    LOG_DEBUG(QString("【通道切换】等待设备进入待机状态，当前状态: %1").arg(result.value(0)), "气密参数");
+                }
+            }
+            reply->deleteLater();
+        }
+        
+        if (!deviceReady) {
+            QThread::msleep(200);
+            waitCount++;
+        }
+    }
+    
+    if (deviceReady) {
+        // 等待额外1秒确保所有寄存器自动归0（8707、9088、9472会自动归0）
+        LOG_DEBUG("【通道切换】等待1秒确保寄存器自动归0", "气密参数");
+        QThread::msleep(1000);
+        
+        LOG_INFO("【通道切换】气密仪已完全就绪，可以开始下一通道测试", "气密参数");
+    } else {
+        LOG_WARNING("【通道切换】等待设备进入待机状态超时，继续执行下一通道测试", "气密参数");
+    }
+}
+
+void AirtightParamSetting::waitForTestStart()
+{
+    // 检查气密仪是否连接
+    if (!modbusClient || !m_airTightConnected) {
+        LOG_WARNING("气密仪未连接，跳过等待测试开始", "气密参数");
+        return;
+    }
+    
+    LOG_INFO("【通道测试】等待设备进入测试状态", "气密参数");
+    
+    // 等待设备进入测试状态（寄存器9088=256）
+    // 最大等待10秒，每200ms检查一次
+    int waitCount = 0;
+    const int maxWaitCount = 50; // 50 * 200ms = 10秒
+    bool testStarted = false;
+    
+    while (waitCount < maxWaitCount && !testStarted) {
+        QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, 9088, 1);
+        QModbusReply *reply = modbusClient->sendReadRequest(readUnit, slaveId);
+        
+        if (reply) {
+            // 同步等待读取完成
+            QEventLoop loop;
+            connect(reply, &QModbusReply::finished, &loop, &QEventLoop::quit);
+            QTimer::singleShot(300, &loop, &QEventLoop::quit); // 超时保护
+            loop.exec();
+            
+            if (reply->isFinished() && reply->error() == QModbusDevice::NoError) {
+                QModbusDataUnit result = reply->result();
+                if (result.valueCount() > 0) {
+                    quint16 status = result.value(0);
+                    if (status == 256) {
+                        testStarted = true;
+                        LOG_DEBUG("【通道测试】设备已进入测试状态（寄存器9088=256）", "气密参数");
+                    } else {
+                        LOG_DEBUG(QString("【通道测试】等待设备进入测试状态，当前寄存器9088值: %1").arg(status), "气密参数");
+                    }
+                }
+            }
+            reply->deleteLater();
+        }
+        
+        if (!testStarted) {
+            QThread::msleep(200);
+            waitCount++;
+        }
+    }
+    
+    if (testStarted) {
+        LOG_INFO("【通道测试】设备已进入测试状态，可以开始实时监控", "气密参数");
+    } else {
+        LOG_WARNING("【通道测试】等待设备进入测试状态超时，继续执行", "气密参数");
+    }
+}
+
 void AirtightParamSetting::resetAirtightDeviceState()
 {
     // 检查airTightModbusClient是否为空或未连接
@@ -1574,31 +1708,46 @@ void AirtightParamSetting::resetAirtightDeviceState()
 
     LOG_INFO("【通道切换】开始重置气密仪设备状态", "气密参数");
     
-    // 1. 重置测试状态寄存器9088为0
-    QModbusDataUnit resetStatusUnit(QModbusDataUnit::HoldingRegisters, 9088, 1);
-    resetStatusUnit.setValue(0, 0);
+    // 等待设备进入待机状态（寄存器8707=0），寄存器会自动归0
+    // 最大等待5秒，每100ms检查一次
+    int waitCount = 0;
+    const int maxWaitCount = 50; // 50 * 100ms = 5秒
+    bool deviceReady = false;
     
-    LOG_DEBUG("【通道切换】重置寄存器9088（测试状态）为0", "气密参数");
-    QModbusReply *statusReply = modbusClient->sendWriteRequest(resetStatusUnit, slaveId);
-    if (statusReply) {
-        connect(statusReply, &QModbusReply::finished, statusReply, &QModbusReply::deleteLater);
+    while (waitCount < maxWaitCount && !deviceReady) {
+        QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, 8707, 1);
+        QModbusReply *reply = modbusClient->sendReadRequest(readUnit, slaveId);
+        
+        if (reply) {
+            // 同步等待读取完成
+            QEventLoop loop;
+            connect(reply, &QModbusReply::finished, &loop, &QEventLoop::quit);
+            QTimer::singleShot(200, &loop, &QEventLoop::quit); // 超时保护
+            loop.exec();
+            
+            if (reply->isFinished() && reply->error() == QModbusDevice::NoError) {
+                QModbusDataUnit result = reply->result();
+                if (result.valueCount() > 0 && result.value(0) == 0) {
+                    deviceReady = true;
+                    LOG_DEBUG("【通道切换】设备已进入待机状态（寄存器8707=0）", "气密参数");
+                } else {
+                    LOG_DEBUG(QString("【通道切换】等待设备进入待机状态，当前状态: %1").arg(result.value(0)), "气密参数");
+                }
+            }
+            reply->deleteLater();
+        }
+        
+        if (!deviceReady) {
+            QThread::msleep(100);
+            waitCount++;
+        }
     }
     
-    // 2. 重置启动命令寄存器9472为0
-    QModbusDataUnit resetCmdUnit(QModbusDataUnit::HoldingRegisters, 9472, 2);
-    resetCmdUnit.setValue(0, 0);
-    resetCmdUnit.setValue(1, 0);
-    
-    LOG_DEBUG("【通道切换】重置寄存器9472（启动命令）为0", "气密参数");
-    QModbusReply *cmdReply = modbusClient->sendWriteRequest(resetCmdUnit, slaveId);
-    if (cmdReply) {
-        connect(cmdReply, &QModbusReply::finished, cmdReply, &QModbusReply::deleteLater);
+    if (deviceReady) {
+        LOG_INFO("【通道切换】气密仪设备状态重置完成，设备已就绪", "气密参数");
+    } else {
+        LOG_WARNING("【通道切换】设备状态重置完成，但设备未进入待机状态", "气密参数");
     }
-    
-    // 3. 等待设备响应（500ms）
-    QThread::msleep(500);
-    
-    LOG_INFO("【通道切换】气密仪设备状态重置完成", "气密参数");
 }
 
 // 复位气密仪方法
