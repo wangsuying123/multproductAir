@@ -25,6 +25,7 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     pressureRegulatorSlaveId(1),
     programNumber(1),
     m_currentTestingChannel(0),
+    m_isCommunicationError(false),
     m_mainControlSetting(nullptr),
     m_airTightnessParamsDao(new AirTightnessParamsDao())
 {
@@ -273,8 +274,32 @@ void RealTimeMonitor::updateTime()
 
 void RealTimeMonitor::updateData()
 {
+    // 如果通信异常，显示错误状态
+    if (m_isCommunicationError) {
+        updateCommunicationErrorUI();
+        return;
+    }
     // 调用实际的实时数据读取方法，替换模拟数据
     readRealTimeData();
+}
+
+void RealTimeMonitor::updateCommunicationErrorUI()
+{
+    // 更新UI显示通信异常状态
+    QMetaObject::invokeMethod(this, [this]() {
+        if (ui->pressureValueLabel) {
+            ui->pressureValueLabel->setText("---");
+        }
+        if (ui->leakValueLabel) {
+            ui->leakValueLabel->setText("---");
+        }
+        
+        // 更新测试状态显示
+        if (ui->testProgressBar) {
+            ui->testProgressBar->setValue(0);
+            ui->testProgressBar->setStyleSheet("QProgressBar { background-color: #ffebee; border: 1px solid #ef5350; border-radius: 4px; } QProgressBar::chunk { background-color: #ef5350; }");
+        }
+    }, Qt::QueuedConnection);
 }
 
 
@@ -658,6 +683,11 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
     }
 }
 
+// 常量定义：通信重试配置
+const int MAX_RETRY_COUNT = 3;       // 最大重试次数
+const int READ_TIMEOUT_MS = 3000;    // 读取超时时间（毫秒）
+const int RETRY_DELAY_MS = 300;      // 重试前等待时间（毫秒）
+
 void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbusDataUnit::RegisterType type, const std::function<void(bool, const QModbusDataUnit&)>& callback, int retryCount) {
     // 使用try-catch块捕获所有异常，防止程序崩溃
     try {
@@ -691,13 +721,16 @@ void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbu
         QModbusReply *reply = airTightModbusClient->sendReadRequest(readUnit, static_cast<quint8>(airTightSlaveId));
         if (!reply) {
             // 发送请求失败，尝试重试
-            if (retryCount < 2) {
-                LOG_WARNING(QString("发送读取请求失败，尝试重试 (%d/2): %1, 地址: %2").arg(retryCount + 1).arg(airTightModbusClient->errorString()).arg(address), "实时监控");
-                QTimer::singleShot(100, this, [this, address, count, type, callback, retryCount]() {
+            if (retryCount < MAX_RETRY_COUNT) {
+                LOG_WARNING(QString("发送读取请求失败，尝试重试 (%d/%d): %1, 地址: %2").arg(retryCount + 1).arg(MAX_RETRY_COUNT).arg(airTightModbusClient->errorString()).arg(address), "实时监控");
+                QTimer::singleShot(RETRY_DELAY_MS, this, [this, address, count, type, callback, retryCount]() {
                     readDeviceDataAsync(address, count, type, callback, retryCount + 1);
                 });
             } else {
-                LOG_ERROR(QString("发送读取请求失败，已达到最大重试次数: %1, 地址: %2, 从站: %3").arg(airTightModbusClient->errorString()).arg(address).arg(airTightSlaveId), "实时监控");
+                LOG_ERROR(QString("发送读取请求失败，已达到最大重试次数(%d): %1, 地址: %2, 从站: %3").arg(MAX_RETRY_COUNT).arg(airTightModbusClient->errorString()).arg(address).arg(airTightSlaveId), "实时监控");
+                // 标记通信异常
+                m_isCommunicationError = true;
+                emit registerReadError(address);
                 if (callback) {
                     callback(false, QModbusDataUnit());
                 }
@@ -717,7 +750,7 @@ void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbu
         }
         
         timeoutTimer->setSingleShot(true);
-        timeoutTimer->setInterval(2000); // 2秒超时
+        timeoutTimer->setInterval(READ_TIMEOUT_MS); // 延长超时时间到3秒
 
         // 连接超时信号
         connect(timeoutTimer, &QTimer::timeout, this, [this, reply, address, count, type, callback, timeoutTimer, retryCount]() {
@@ -731,13 +764,16 @@ void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbu
                 }
                 
                 // 尝试重试
-                if (retryCount < 2) {
-                    LOG_INFO(QString("读取寄存器超时，尝试重试 (%d/2): 地址 %1").arg(retryCount + 1).arg(address), "实时监控");
-                    QTimer::singleShot(100, this, [this, address, count, type, callback, retryCount]() {
+                if (retryCount < MAX_RETRY_COUNT) {
+                    LOG_INFO(QString("读取寄存器超时，尝试重试 (%d/%d): 地址 %1").arg(retryCount + 1).arg(MAX_RETRY_COUNT).arg(address), "实时监控");
+                    QTimer::singleShot(RETRY_DELAY_MS, this, [this, address, count, type, callback, retryCount]() {
                         readDeviceDataAsync(address, count, type, callback, retryCount + 1);
                     });
                 } else {
-                    LOG_ERROR(QString("读取寄存器超时，已达到最大重试次数: 地址 %1").arg(address), "实时监控");
+                    LOG_ERROR(QString("读取寄存器超时，已达到最大重试次数(%d): 地址 %1").arg(MAX_RETRY_COUNT).arg(address), "实时监控");
+                    // 标记通信异常
+                    m_isCommunicationError = true;
+                    emit registerReadError(address);
                     if (callback) {
                         callback(false, QModbusDataUnit());
                     }
@@ -776,6 +812,8 @@ void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbu
                 }
 
                 if (reply->error() == QModbusDevice::NoError) {
+                    // 重置通信错误状态
+                    m_isCommunicationError = false;
                     if (callback) {
                         callback(true, reply->result());
                     }
@@ -787,13 +825,16 @@ void RealTimeMonitor::readDeviceDataAsync(quint16 address, quint16 count, QModbu
                         reply->deleteLater();
                     }
                     
-                    if (retryCount < 2) {
-                        LOG_INFO(QString("读取寄存器失败，尝试重试 (%d/2): 地址 %1").arg(retryCount + 1).arg(address), "实时监控");
-                        QTimer::singleShot(100, this, [this, address, count, type, callback, retryCount]() {
+                    if (retryCount < MAX_RETRY_COUNT) {
+                        LOG_INFO(QString("读取寄存器失败，尝试重试 (%d/%d): 地址 %1").arg(retryCount + 1).arg(MAX_RETRY_COUNT).arg(address), "实时监控");
+                        QTimer::singleShot(RETRY_DELAY_MS, this, [this, address, count, type, callback, retryCount]() {
                             readDeviceDataAsync(address, count, type, callback, retryCount + 1);
                         });
                     } else {
-                        LOG_ERROR(QString("读取寄存器失败，已达到最大重试次数: 地址 %1").arg(address), "实时监控");
+                        LOG_ERROR(QString("读取寄存器失败，已达到最大重试次数(%d): 地址 %1").arg(MAX_RETRY_COUNT).arg(address), "实时监控");
+                        // 标记通信异常
+                        m_isCommunicationError = true;
+                        emit registerReadError(address);
                         if (callback) {
                             callback(false, QModbusDataUnit());
                         }

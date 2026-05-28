@@ -140,6 +140,9 @@ private:
     // 根据通道号获取程序号
     int getProgramNumberForChannel(int channel);
     
+    // 校验参数有效性
+    bool validateParams(const QMap<QString, QVariant> &params, int channel);
+    
     // 发送参数到设备
     bool sendParamsToDevice(const QMap<QString, QVariant> &params);
     
@@ -151,6 +154,9 @@ private:
     
     // 复位气密仪
     void resetAirtightTest();
+    
+    // 重置气密仪设备状态（通道切换前调用）
+    void resetAirtightDeviceState();
     
     Ui::AirtightParamSetting *ui;
     bool m_airTightConnected; // 保存气密仪连接状态

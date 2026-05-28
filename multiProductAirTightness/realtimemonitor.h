@@ -34,6 +34,8 @@ signals:
     void testResultSaved(const QMap<QString, QVariant>& testResult);
     // 测试通道变化信号
     void testChannelChanged(int channel);
+    // 寄存器读取错误信号
+    void registerReadError(uint16_t addr);
 
 public:
     explicit RealTimeMonitor(QWidget *parent = nullptr);
@@ -116,6 +118,7 @@ private:
     // 状态相关成员
     bool isConnected;
     bool isMonitoring;
+    bool m_isCommunicationError; // 通信错误状态标志
     quint16 register8707Value;
     int programNumber; // 当前程序号
     int m_currentTestingChannel; // 当前测试通道（1、2、3）
@@ -155,6 +158,8 @@ private:
     bool sendMainBoardCommand(quint16 address, quint16 value, int timeoutMs = 500);
     // 计算并更新总测试结果
     void calculateAndUpdateTotalResult();
+    // 更新通信错误UI显示
+    void updateCommunicationErrorUI();
 };
 
 #endif // REALTIMEMONITOR_H

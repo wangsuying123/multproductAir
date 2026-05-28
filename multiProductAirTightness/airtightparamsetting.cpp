@@ -968,6 +968,9 @@ void AirtightParamSetting::startNextChannelTest()
         LOG_WARNING("【通道测试】m_realTimeMonitor为空，无法停止定时器", "气密参数");
     }
     
+    // 重置气密仪状态（通道切换前必须执行，避免前一通道状态残留）
+    resetAirtightDeviceState();
+    
     if (m_currentChannelIndex >= m_enabledChannels.size()) {
         // 所有通道测试完成
         LOG_INFO("【通道测试】所有开启通道的气密测试已完成", "气密参数");
@@ -1141,12 +1144,82 @@ int AirtightParamSetting::getProgramNumberForChannel(int channel)
     return programNumber;
 }
 
+// 校验参数有效性
+bool AirtightParamSetting::validateParams(const QMap<QString, QVariant> &params, int channel)
+{
+    QStringList errors;
+    
+    // 校验时间参数
+    double fillTime = params["fill_time"].toDouble();
+    double stabilizationTime = params["stabilization_time"].toDouble();
+    double testTime = params["test_time"].toDouble();
+    double dumpTime = params["dump_time"].toDouble();
+    
+    if (fillTime <= 0 || fillTime > 200) {
+        errors.append(QString("填充时间(%1)超出有效范围(0-200)").arg(fillTime));
+    }
+    if (stabilizationTime <= 0 || stabilizationTime > 200) {
+        errors.append(QString("稳定时间(%1)超出有效范围(0-200)").arg(stabilizationTime));
+    }
+    if (testTime <= 0 || testTime > 200) {
+        errors.append(QString("测试时间(%1)超出有效范围(0-200)").arg(testTime));
+    }
+    if (dumpTime <= 0 || dumpTime > 200) {
+        errors.append(QString("排气时间(%1)超出有效范围(0-200)").arg(dumpTime));
+    }
+    
+    // 校验压力参数
+    double pressureMin = params["pressure_min"].toDouble();
+    double pressureMax = params["pressure_max"].toDouble();
+    double pressureFill = params["pressure_set_fill"].toDouble();
+    
+    if (pressureMin <= 0) {
+        errors.append(QString("最小压力(%1)必须大于0").arg(pressureMin));
+    }
+    if (pressureMax <= 0) {
+        errors.append(QString("最大压力(%1)必须大于0").arg(pressureMax));
+    }
+    if (pressureFill <= 0) {
+        errors.append(QString("填充压力(%1)必须大于0").arg(pressureFill));
+    }
+    if (pressureMin >= pressureMax) {
+        errors.append(QString("最小压力(%1)必须小于最大压力(%2)").arg(pressureMin).arg(pressureMax));
+    }
+    
+    // 校验容积参数
+    quint16 volume = params["volume"].toUInt();
+    if (volume == 0) {
+        errors.append("容积参数无效(等于0)");
+    }
+    
+    // 校验泄漏参数
+    double testReject = params["test_reject"].toDouble();
+    if (testReject < 0) {
+        errors.append(QString("允许泄漏值(%1)不能为负数").arg(testReject));
+    }
+    
+    // 如果有错误，记录日志
+    if (!errors.isEmpty()) {
+        LOG_ERROR(QString("【通道%1】参数校验失败: %2").arg(channel).arg(errors.join("; ")), "气密参数");
+        return false;
+    }
+    
+    LOG_DEBUG(QString("【通道%1】参数校验通过").arg(channel), "气密参数");
+    return true;
+}
+
 // 发送参数到设备
 bool AirtightParamSetting::sendParamsToDevice(const QMap<QString, QVariant> &params)
 {
     // 检查气密仪连接状态
     if (!modbusClient || !m_airTightConnected) {
         LOG_ERROR("气密仪未连接，无法发送参数", "气密参数");
+        return false;
+    }
+    
+    // 参数校验
+    if (!validateParams(params, m_currentTestingChannel)) {
+        LOG_ERROR("参数校验失败，无法发送参数", "气密参数");
         return false;
     }
     
@@ -1488,6 +1561,44 @@ bool AirtightParamSetting::startAirtightTest()
         LOG_ERROR("sendWriteRequest返回nullptr，无法发送启动命令", "气密参数");
         return false;
     }
+}
+
+// 重置气密仪设备状态（通道切换前调用，清除前一通道状态残留）
+void AirtightParamSetting::resetAirtightDeviceState()
+{
+    // 检查airTightModbusClient是否为空或未连接
+    if (!modbusClient || !m_airTightConnected) {
+        LOG_WARNING("气密仪未连接，跳过设备状态重置", "气密参数");
+        return;
+    }
+
+    LOG_INFO("【通道切换】开始重置气密仪设备状态", "气密参数");
+    
+    // 1. 重置测试状态寄存器9088为0
+    QModbusDataUnit resetStatusUnit(QModbusDataUnit::HoldingRegisters, 9088, 1);
+    resetStatusUnit.setValue(0, 0);
+    
+    LOG_DEBUG("【通道切换】重置寄存器9088（测试状态）为0", "气密参数");
+    QModbusReply *statusReply = modbusClient->sendWriteRequest(resetStatusUnit, slaveId);
+    if (statusReply) {
+        connect(statusReply, &QModbusReply::finished, statusReply, &QModbusReply::deleteLater);
+    }
+    
+    // 2. 重置启动命令寄存器9472为0
+    QModbusDataUnit resetCmdUnit(QModbusDataUnit::HoldingRegisters, 9472, 2);
+    resetCmdUnit.setValue(0, 0);
+    resetCmdUnit.setValue(1, 0);
+    
+    LOG_DEBUG("【通道切换】重置寄存器9472（启动命令）为0", "气密参数");
+    QModbusReply *cmdReply = modbusClient->sendWriteRequest(resetCmdUnit, slaveId);
+    if (cmdReply) {
+        connect(cmdReply, &QModbusReply::finished, cmdReply, &QModbusReply::deleteLater);
+    }
+    
+    // 3. 等待设备响应（500ms）
+    QThread::msleep(500);
+    
+    LOG_INFO("【通道切换】气密仪设备状态重置完成", "气密参数");
 }
 
 // 复位气密仪方法
