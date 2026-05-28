@@ -51,7 +51,9 @@ AirtightParamSetting::AirtightParamSetting(QWidget *parent) :
     m_page3Widget(nullptr),
     m_isMultiChannelTesting(false), // 初始化多通道测试状态为false
     m_currentChannelIndex(-1), // 初始化当前通道索引为-1
-    m_currentTestingChannel(0) // 初始化当前测试通道为0
+    m_currentTestingChannel(0), // 初始化当前测试通道为0
+    m_resetInProgress(false), // 初始化复位防抖标志为false
+    m_resetDebounceTimer(nullptr) // 初始化复位防抖定时器指针
 {
     LOG_INFO("=== AirtightParamSetting 构造函数开始执行 ===", "气密参数");
     ui->setupUi(this);
@@ -154,6 +156,16 @@ AirtightParamSetting::AirtightParamSetting(QWidget *parent) :
     connect(detectionTimer, &QTimer::timeout, this, &AirtightParamSetting::realTimeRegisterDetection);
     detectionTimer->start(100); // 每100ms检测一次
     LOG_INFO(QString("=== 实时检测定时器已启动，间隔100ms，isActive=%1 ===").arg(detectionTimer->isActive()), "气密参数");
+
+    // 初始化复位防抖定时器
+    m_resetDebounceTimer = new QTimer(this);
+    m_resetDebounceTimer->setSingleShot(true); // 单次触发
+    m_resetDebounceTimer->setInterval(3000); // 3秒防抖时间
+    connect(m_resetDebounceTimer, &QTimer::timeout, this, [this]() {
+        LOG_DEBUG("复位防抖定时器到期，允许新的复位操作", "气密参数");
+        m_resetInProgress = false;
+    });
+    LOG_INFO("复位防抖定时器初始化完成，防抖时间3秒", "气密参数");
     
     // 加载当前程序号的参数
     LOG_INFO(QString("加载程序号 %1 的参数").arg(ui->programNumberComboBox->currentText()), "气密参数");
@@ -167,6 +179,10 @@ AirtightParamSetting::~AirtightParamSetting()
     if (detectionTimer) {
         detectionTimer->stop();
         delete detectionTimer;
+    }
+    if (m_resetDebounceTimer) {
+        m_resetDebounceTimer->stop();
+        delete m_resetDebounceTimer;
     }
     delete ui;
 }
@@ -938,10 +954,18 @@ void AirtightParamSetting::startNextChannelTest()
 {
     LOG_DEBUG(QString("【通道测试】进入startNextChannelTest(), m_isMultiChannelTesting=%1, m_currentChannelIndex=%2, m_enabledChannels.size=%3")
               .arg(m_isMultiChannelTesting ? "true" : "false").arg(m_currentChannelIndex).arg(m_enabledChannels.size()), "气密参数");
-    
+
     if (!m_isMultiChannelTesting) {
         LOG_WARNING("【通道测试】未在多通道测试状态中，直接返回", "气密参数");
         return;
+    }
+
+    // 停止实时监控定时器，避免Modbus通信冲突
+    if (m_realTimeMonitor) {
+        LOG_DEBUG("【通道测试】停止实时监控定时器，避免Modbus通信冲突", "气密参数");
+        m_realTimeMonitor->stopDataTimers();
+    } else {
+        LOG_WARNING("【通道测试】m_realTimeMonitor为空，无法停止定时器", "气密参数");
     }
     
     if (m_currentChannelIndex >= m_enabledChannels.size()) {
@@ -951,6 +975,10 @@ void AirtightParamSetting::startNextChannelTest()
         m_currentChannelIndex = -1;
         m_currentTestingChannel = 0;
         m_enabledChannels.clear();
+        // 所有测试完成，重新启动定时器
+        if (m_realTimeMonitor) {
+            m_realTimeMonitor->startDataTimers();
+        }
         return;
     }
     
@@ -990,6 +1018,10 @@ void AirtightParamSetting::startNextChannelTest()
         // 继续下一个通道
         LOG_WARNING(QString("【通道测试】通道%1 - 数据库连接失败，跳过此通道，继续下一个").arg(m_currentTestingChannel), "气密参数");
         m_currentChannelIndex++;
+        // 即使失败也重新启动定时器，避免定时器永久停止
+        if (m_realTimeMonitor) {
+            m_realTimeMonitor->startDataTimers();
+        }
         QTimer::singleShot(100, this, &AirtightParamSetting::startNextChannelTest);
         return;
     }
@@ -1008,6 +1040,10 @@ void AirtightParamSetting::startNextChannelTest()
         // 继续下一个通道
         LOG_WARNING(QString("【通道测试】通道%1 - 参数不存在，跳过此通道，继续下一个").arg(m_currentTestingChannel), "气密参数");
         m_currentChannelIndex++;
+        // 即使失败也重新启动定时器，避免定时器永久停止
+        if (m_realTimeMonitor) {
+            m_realTimeMonitor->startDataTimers();
+        }
         QTimer::singleShot(100, this, &AirtightParamSetting::startNextChannelTest);
         return;
     }
@@ -1021,6 +1057,10 @@ void AirtightParamSetting::startNextChannelTest()
         // 继续下一个通道
         LOG_WARNING(QString("【通道测试】通道%1 - 参数发送失败，跳过此通道，继续下一个").arg(m_currentTestingChannel), "气密参数");
         m_currentChannelIndex++;
+        // 即使失败也重新启动定时器，避免定时器永久停止
+        if (m_realTimeMonitor) {
+            m_realTimeMonitor->startDataTimers();
+        }
         QTimer::singleShot(100, this, &AirtightParamSetting::startNextChannelTest);
         return;
     }
@@ -1030,7 +1070,15 @@ void AirtightParamSetting::startNextChannelTest()
     LOG_INFO(QString("【通道测试】通道%1 - 参数发送成功，启动气密仪").arg(m_currentTestingChannel), "气密参数");
     bool startSuccess = startAirtightTest();
     LOG_DEBUG(QString("【通道测试】通道%1 - startAirtightTest()返回: %2").arg(m_currentTestingChannel).arg(startSuccess ? "成功" : "失败"), "气密参数");
-    
+
+    // 重新启动实时监控定时器（延迟200ms确保启动命令已发送完成）
+    if (m_realTimeMonitor) {
+        QTimer::singleShot(200, this, [this]() {
+            LOG_DEBUG("【通道测试】重新启动实时监控定时器", "气密参数");
+            m_realTimeMonitor->startDataTimers();
+        });
+    }
+
     // 发送通道测试开始信号
     LOG_DEBUG(QString("【通道测试】通道%1 - 发送channelTestCompleted信号").arg(m_currentTestingChannel), "气密参数");
     emit channelTestCompleted(m_currentTestingChannel, false);
@@ -1349,7 +1397,7 @@ void AirtightParamSetting::realTimeRegisterDetection()
                 channelsStr += QString::number(m_enabledChannels[i]);
             }
             LOG_INFO(QString("【启动流程】检测到开启的通道: %1").arg(channelsStr), "气密参数");
-            LOG_DEBUG(QString("【启动流程】通道列表长度: %d, 第一个通道: %d").arg(m_enabledChannels.size()).arg(m_enabledChannels.isEmpty() ? 0 : m_enabledChannels.first()), "气密参数");
+            LOG_DEBUG(QString("【启动流程】通道列表长度: %1, 第一个通道: %2").arg(m_enabledChannels.size()).arg(m_enabledChannels.isEmpty() ? 0 : m_enabledChannels.first()), "气密参数");
             
             if (m_enabledChannels.isEmpty()) {
                 LOG_WARNING("【启动流程】未检测到任何开启的通道，取消启动", "气密参数");
@@ -1359,7 +1407,7 @@ void AirtightParamSetting::realTimeRegisterDetection()
             // 2. 初始化多通道测试状态
             m_isMultiChannelTesting = true;
             m_currentChannelIndex = 0;
-            LOG_INFO(QString("【启动流程】初始化多通道测试，起始索引=0，将从通道%d开始测试").arg(m_enabledChannels[0]), "气密参数");
+            LOG_INFO(QString("【启动流程】初始化多通道测试，起始索引=0，将从通道%1开始测试").arg(m_enabledChannels[0]), "气密参数");
             
             // 3. 启动第一个通道测试
             LOG_DEBUG("【启动流程】准备调用startNextChannelTest()", "气密参数");
@@ -1382,11 +1430,22 @@ void AirtightParamSetting::realTimeRegisterDetection()
             LOG_INFO(QString("寄存器0007值变化: %1 -> %2").arg(lastReg0007).arg(reg0007), "气密参数");
             lastReg0007 = reg0007;
         }
-        
-        // 检测寄存器0007是否为1，如果是则复位气密仪
+
+        // 检测寄存器0007是否为1，如果是则复位气密仪（带防抖）
         if (reg0007 == 1) {
-            LOG_INFO("检测到寄存器0007为1，复位气密仪", "气密参数");
-            resetAirtightTest();
+            // 检查防抖标志
+            if (m_resetInProgress) {
+                LOG_DEBUG("复位操作正在进行中，忽略本次复位请求（防抖）", "气密参数");
+            } else {
+                LOG_INFO("检测到寄存器0007为1，复位气密仪", "气密参数");
+                m_resetInProgress = true;
+                m_resetDebounceTimer->start(); // 启动防抖定时器
+                resetAirtightTest();
+            }
+
+            // 复位后清零寄存器0007，防止重复触发
+            LOG_DEBUG("复位完成后清零寄存器0007", "气密参数");
+            sendMainBoardCommand(0x0007, 0x0000, 500);
         }
     } else {
         // 读取失败时记录（但不要太频繁）

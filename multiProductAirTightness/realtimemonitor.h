@@ -75,6 +75,10 @@ public:
     QString getProductId() const;
     // 获取是否必须扫码
     bool isScanRequired() const;
+    // 停止数据读取定时器（用于通道切换时避免Modbus通信冲突）
+    void stopDataTimers();
+    // 启动数据读取定时器（用于通道切换后恢复监控）
+    void startDataTimers();
 
 private:
     Ui::RealTimeMonitor *ui;

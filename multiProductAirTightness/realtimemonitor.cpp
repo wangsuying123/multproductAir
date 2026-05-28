@@ -1597,3 +1597,29 @@ bool RealTimeMonitor::isScanRequired() const
 {
     return scanRequired;
 }
+
+// 停止数据读取定时器（用于通道切换时避免Modbus通信冲突）
+void RealTimeMonitor::stopDataTimers()
+{
+    if (dataTimer && dataTimer->isActive()) {
+        dataTimer->stop();
+        LOG_DEBUG("数据读取定时器已停止", "实时监控");
+    }
+    if (testResultTimer && testResultTimer->isActive()) {
+        testResultTimer->stop();
+        LOG_DEBUG("测试结果读取定时器已停止", "实时监控");
+    }
+}
+
+// 启动数据读取定时器（用于通道切换后恢复监控）
+void RealTimeMonitor::startDataTimers()
+{
+    if (dataTimer && !dataTimer->isActive()) {
+        dataTimer->start(1000);
+        LOG_DEBUG("数据读取定时器已启动", "实时监控");
+    }
+    if (testResultTimer && !testResultTimer->isActive()) {
+        testResultTimer->start(500);
+        LOG_DEBUG("测试结果读取定时器已启动", "实时监控");
+    }
+}

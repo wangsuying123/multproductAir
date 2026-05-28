@@ -199,6 +199,10 @@ private:
     QList<int> m_enabledChannels;      // 开启的通道列表
     int m_currentChannelIndex;         // 当前正在测试的通道索引
     int m_currentTestingChannel;       // 当前正在测试的通道号
+
+    // 防抖相关成员
+    bool m_resetInProgress;            // 复位操作是否正在进行（防抖标志）
+    QTimer *m_resetDebounceTimer;      // 复位防抖定时器
 };
 
 #endif // AIRTIGHTPARAMSETTING_H
