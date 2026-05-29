@@ -978,9 +978,9 @@ void AirtightParamSetting::startNextChannelTest()
         LOG_WARNING("【通道测试】m_realTimeMonitor为空，无法停止定时器", "气密参数");
     }
     
-    // 新增：等待200ms确保Modbus链路完全释放
-    LOG_DEBUG("【通道测试】等待200ms确保Modbus链路释放", "气密参数");
-    QThread::msleep(200);
+    // 新增：等待500ms确保Modbus链路完全释放
+    LOG_DEBUG("【通道测试】等待500ms确保Modbus链路释放", "气密参数");
+    QThread::msleep(500);
     
     // 重置实时监控的软件状态，确保下一通道测试结果能被正确处理
     if (m_realTimeMonitor) {
@@ -1089,21 +1089,23 @@ void AirtightParamSetting::startNextChannelTest()
     }
     LOG_DEBUG(QString("【通道测试】通道%1 - 参数发送成功").arg(m_currentTestingChannel), "气密参数");
     
-    // 参数发送后等待300ms，确保设备有足够时间处理参数
-    LOG_DEBUG("【通道测试】等待300ms确保参数处理完成", "气密参数");
-    QThread::msleep(300);
+    // 参数发送后等待500ms，确保设备有足够时间处理参数
+    LOG_DEBUG("【通道测试】等待500ms确保参数处理完成", "气密参数");
+    QThread::msleep(500);
     
     // 启动气密仪
     LOG_INFO(QString("【通道测试】通道%1 - 参数发送成功，启动气密仪").arg(m_currentTestingChannel), "气密参数");
     bool startSuccess = startAirtightTest();
     LOG_DEBUG(QString("【通道测试】通道%1 - startAirtightTest()返回: %2").arg(m_currentTestingChannel).arg(startSuccess ? "成功" : "失败"), "气密参数");
 
-    // 重新启动实时监控定时器（延迟1000ms确保启动命令已发送完成并被设备接收）
+    // 【关键修复：启动命令发送后，等待气密仪初始化进入测试状态（700ms）
+    LOG_INFO("【通道测试】等待700ms，让气密仪完成初始化并进入测试状态", "气密参数");
+    QThread::msleep(700);
+
+    // 重新启动实时监控定时器（在启动命令发送和设备初始化完成后立即启动）
     if (m_realTimeMonitor) {
-        QTimer::singleShot(1000, this, [this]() {
-            LOG_DEBUG("【通道测试】重新启动实时监控定时器", "气密参数");
-            m_realTimeMonitor->startDataTimers();
-        });
+        LOG_DEBUG("【通道测试】重新启动实时监控定时器", "气密参数");
+        m_realTimeMonitor->startDataTimers();
     }
 
     // 发送通道测试开始信号

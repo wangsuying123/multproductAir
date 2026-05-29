@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>818</width>
     <height>667</height>
    </rect>
   </property>
@@ -15,14 +15,14 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget#RealTimeMonitor {
-    background-color: #0a1929;
-    font-family: 'Segoe UI', 'Microsoft YaHei UI', 'Consolas', monospace;
-    font-size: 14px;
-    color: #e2e8f0;
+   background-color: #0a1929;
+   font-family: 'Segoe UI', 'Microsoft YaHei UI', 'Consolas', monospace;
+   font-size: 16px;
+   color: #e2e8f0;
 }
 
 QScrollArea {
-    background-color: transparent;
+   background-color: transparent;
 }
 
 QWidget#scrollAreaWidgetContents {
@@ -41,7 +41,7 @@ QFrame#titleBar {
 }
 
 QLabel#systemTitle {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     letter-spacing: 1px;
     color: #64d2ff !important;
@@ -53,7 +53,7 @@ QLabel#systemTitle {
     background-color: #112d4e !important;
     border-radius: 4px !important;
     padding: 4px 10px !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     color: #f8fafc !important;
     font-weight: 600 !important;
     box-shadow: inset 0 0 6px rgba(100, 210, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
@@ -90,7 +90,7 @@ QLabel#runningParamsTitle, QLabel#testResultTitle, QLabel#realtimeDataTitle, QLa
     line-height: 28px !important;
     border-bottom: 2px solid #64d2ff;
     background: qlineargradient(135deg, #112d4e 0%, #1e5f74 100%);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: #f8fafc;
     text-shadow: 0 0 6px rgba(248, 250, 252, 0.3);
@@ -111,14 +111,14 @@ QFrame#paramFrame1, QFrame#paramFrame2, QFrame#paramFrame3, QFrame#paramFrame4, 
 }
 
 #paramLabel1, #paramLabel2, #paramLabel3, #paramLabel4, #paramLabel5, #paramLabel6, #paramLabel7 {
-    font-size: 13px;
+    font-size: 15px;
     color: #00e676;
     font-weight: 500;
     letter-spacing: 0.2px;
 }
 
 #paramValue1, #paramValue2, #paramValue3, #paramValue4, #paramValue5, #paramValue6, #paramValue7 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #97e7ff !important;
     text-shadow: 0 0 8px rgba(100, 210, 255, 0.6);
@@ -139,13 +139,13 @@ QFrame#resultFrame1, QFrame#resultFrame2, QFrame#resultFrame3, QFrame#resultFram
 }
 
 #resultLabel1, #resultLabel2, #resultLabel3, #resultLabel4 {
-    font-size: 14px;
+    font-size: 16px;
     color: #64d2ff;
     font-weight: 500;
 }
 
 #resultValue1, #resultValue2, #resultValue3, #resultValue4 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     color: #64d2ff !important;
     text-shadow: 0 0 8px rgba(100, 210, 255, 0.6);
@@ -171,7 +171,7 @@ QFrame#processStatus {
 }
 
 #statusText {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: #ff9800;
     text-align: center;
@@ -182,7 +182,7 @@ QFrame#processStatus {
     border-radius: 15px;
     background-color: rgba(17, 45, 78, 0.95);
     border: 2px solid rgba(100, 210, 255, 0.4);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #f8fafc;
     text-shadow: 0 0 8px rgba(100, 210, 255, 0.8);
@@ -208,7 +208,7 @@ QProgressBar#testProgressBar::chunk {
 }
 
 #resultLabel5, #resultLabel6, #resultLabel7, #resultLabel8, #resultLabel9, #resultLabel10, #resultLabel11, #resultLabel12, #resultLabel13, #resultLabel14, #resultLabel15 {
-    font-size: 12px;
+    font-size: 14px;
     color: #e2e8f0;
     font-weight: 500;
     min-width: 45px;
@@ -216,8 +216,8 @@ QProgressBar#testProgressBar::chunk {
     flex-shrink: 1;
 }
 
-#resultValue5, #resultValue6, #resultValue7, #resultValue9, #resultValue10, #resultValue11, #resultValue12, #resultValue13, #resultValue14 {
-    font-size: 12px;
+#resultValue5, #resultValue6, #resultValue7, #resultValue8, #resultValue9, #resultValue10, #resultValue11, #resultValue12, #resultValue13, #resultValue14 {
+    font-size: 14px;
     font-weight: 600;
     color: #64d2ff;
     min-width: 70px;
@@ -225,20 +225,8 @@ QProgressBar#testProgressBar::chunk {
     flex-shrink: 1;
 }
 
-#resultValue8 {
-    font-size: 14px;
-    padding: 2px 4px;
-    border-radius: 4px;
-    background-color: rgba(10, 25, 41, 0.9);
-    border: 1px solid #00e676;
-    color: #00e676;
-    min-width: 35px;
-    text-align: center;
-    flex-shrink: 1;
-}
-
 #resultValue15 {
-    font-size: 14px;
+    font-size: 16px;
     padding: 2px 6px;
     border-radius: 4px;
     background-color: rgba(10, 25, 41, 0.9);
@@ -256,7 +244,7 @@ QPushButton {
     border: 1px solid #64d2ff;
     border-radius: 4px;
     padding: 8px 14px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
 }
 
@@ -271,11 +259,11 @@ QLineEdit {
     border-radius: 4px;
     padding: 4px 8px;
     color: #f8fafc;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 QCheckBox {
-    font-size: 14px;
+    font-size: 16px;
     color: #e2e8f0;
 }
 
@@ -298,14 +286,14 @@ QScrollBar::handle {
 }
 
 #pressureValueLabel, #leakValueLabel {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     color: #64d2ff;
     text-shadow: 0 0 8px rgba(100, 210, 255, 0.5);
 }
 
 #pressureLabel, #leakLabel {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
     color: #e2e8f0;
 }
@@ -318,18 +306,18 @@ QScrollBar::handle {
     border-radius: 2px;
     padding: 0px 4px;
     color: #00e676;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     min-width: 150px;
 }
 
 #currentProductIdLabel {
-    font-size: 14px;
+    font-size: 16px;
     color: #ffffff;
 }
 
 #productIdLabel {
-    font-size: 14px;
+    font-size: 16px;
     color: #ffffff;
 }</string>
   </property>
@@ -867,14 +855,14 @@ QScrollBar::handle {
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>---</string>
-            </property>
             <property name="minimumSize">
              <size>
-              <width>150</width>
+              <width>160</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="text">
+             <string>---</string>
             </property>
            </widget>
           </item>
@@ -1006,13 +994,6 @@ QScrollBar::handle {
              <property name="spacing">
               <number>3</number>
              </property>
-             <item>
-              <widget class="QLabel" name="resultLabel14">
-               <property name="text">
-                <string>综合结果:</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QLabel" name="resultValue14">
                <property name="styleSheet">

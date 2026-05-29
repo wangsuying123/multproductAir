@@ -22,6 +22,10 @@ public:
     // 主窗口每次追加新数据点时调用，实时同步
     void appendData(double xIndex, double pressure, double leak);
 
+protected:
+    // 重写键盘事件处理，支持ESC键退出全屏
+    void keyPressEvent(QKeyEvent *event) override;
+
 private:
     QChart       *chart;
     QChartView   *chartView;

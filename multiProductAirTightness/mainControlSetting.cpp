@@ -2,6 +2,7 @@
 #include "ui_mainControlSetting.h"
 #include "realtimemonitor.h"
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QEventLoop>
 #include <QThread>
 #include <QSettings>
@@ -628,8 +629,29 @@ bool MainControlSetting::startAirtightTest()
 {
     // 检查是否需要扫码
     if (m_realTimeMonitor && !m_realTimeMonitor->canStartTest()) {
-        LOG_WARNING("必须扫码但产品编号为空，拒绝启动气密仪", "主控设置");
-        return false;
+        LOG_WARNING("必须扫码但产品编号为空，弹出对话框提示用户输入", "主控设置");
+        
+        // 弹出输入对话框让用户输入产品编号
+        bool ok;
+        QString productId = QInputDialog::getText(
+            this, 
+            "请输入产品编号", 
+            "必须扫描或输入产品编号才能启动测试：", 
+            QLineEdit::Normal, 
+            "", 
+            &ok
+        );
+        
+        // 如果用户点击确定并且输入了产品编号
+        if (ok && !productId.isEmpty()) {
+            // 更新产品编号
+            m_realTimeMonitor->updateCurrentProductId(productId);
+            LOG_INFO(QString("用户输入了产品编号: %1").arg(productId), "主控设置");
+        } else {
+            // 用户取消或未输入产品编号
+            LOG_WARNING("用户未输入产品编号，取消启动气密仪", "主控设置");
+            return false;
+        }
     }
     
     // 检查airTightModbusClient是否为空或未连接

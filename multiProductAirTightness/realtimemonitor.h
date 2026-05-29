@@ -61,6 +61,10 @@ private slots:
     void onExpandChartButtonClicked();
     void onChartDialogClosed();
 
+protected:
+    // 重写showEvent，确保每次页面显示时自动聚焦到产品编号输入框
+    void showEvent(QShowEvent *event) override;
+
 public:
     bool writeDeviceData(quint16 address, quint16 value, QModbusDataUnit::RegisterType type);
     void setAirTightModbusClient(QModbusClient *client);
@@ -85,6 +89,8 @@ public:
     void startDataTimers();
     // 重置测试阶段状态（用于多通道测试完成后重置）
     void resetTestPhaseState();
+    // 强制聚焦到产品编号输入框
+    void focusProductIdInput();
 
 private:
     Ui::RealTimeMonitor *ui;
@@ -92,6 +98,7 @@ private:
     QTimer *dataTimer;
     QTimer *testResultTimer; // 测试结果读取定时器
     QTimer *m_testTimeoutTimer; // 测试超时检测定时器（用于通道测试无响应时重发启动命令）
+    QTimer *m_readDataTimeoutTimer; // 读取数据超时保护定时器（防止m_isReadingData永远为true）
 
     // 枚举定义测试进程状态
     enum ProcessStatus {
@@ -168,8 +175,11 @@ private:
     void updateCommunicationErrorUI();
     // 强制检测测试阶段（解决通道2/3阶段无变化问题）
     void forceDetectTestPhase();
+    // 事件过滤器，处理产品编号输入框的焦点事件
+    bool eventFilter(QObject *obj, QEvent *event);
 
     quint16 m_lastReg9088Value = 0; // 记录上一次读取的寄存器9088值
+    bool m_resultSent = false; // 标记测试结果命令是否已发送
 };
 
 #endif // REALTIMEMONITOR_H

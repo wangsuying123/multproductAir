@@ -1,6 +1,8 @@
 #include "chartdialog.h"
 #include <QVBoxLayout>
 #include <QPainter>
+#include <QKeyEvent>
+#include <QApplication>
 
 ChartDialog::ChartDialog(QWidget *parent)
     : QDialog(parent),
@@ -15,6 +17,9 @@ ChartDialog::ChartDialog(QWidget *parent)
     setWindowTitle("实时数据折线图 - 全屏查看");
     setMinimumSize(1000, 700);
     setWindowFlags(windowFlags() | Qt::Window);
+    
+    // 进入全屏模式
+    showFullScreen();
 
     // 对话框自己的独立序列
     leakSeries = new QLineSeries();
@@ -123,5 +128,16 @@ void ChartDialog::appendData(double xIndex, double pressure, double leak)
         axisX->setRange(xIndex - 50, xIndex);
     } else {
         axisX->setRange(0, qMax(50.0, xIndex));
+    }
+}
+
+// 重写键盘事件处理，支持ESC键退出全屏
+void ChartDialog::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape) {
+        // ESC键退出全屏并关闭对话框
+        close();
+    } else {
+        QDialog::keyPressEvent(event);
     }
 }

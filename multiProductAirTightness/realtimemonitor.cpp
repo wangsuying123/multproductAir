@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QMessageBox>
 #include <QEventLoop>
+#include <QApplication>
+#include <QTimer>
 #include "databasemanager.h"
 #include "enum/pressureUnit.h"
 #include "logmanager.h"
@@ -17,6 +19,7 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     dataTimer(new QTimer(this)),
     testResultTimer(new QTimer(this)),
     m_testTimeoutTimer(new QTimer(this)),
+    m_readDataTimeoutTimer(new QTimer(this)),
     dataCount(0),
     airTightModbusClient(nullptr),
     mainBoardModbusClient(nullptr),
@@ -35,10 +38,10 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     
     // 初始化实时数据显示的默认值
     if (ui->pressureValueLabel) {
-        ui->pressureValueLabel->setText("0.00");
+        ui->pressureValueLabel->setText("0.00 ---");
     }
     if (ui->leakValueLabel) {
-        ui->leakValueLabel->setText("0.00");
+        ui->leakValueLabel->setText("0.00 ---");
     }
     // 移除固定几何尺寸，确保页面能正确适应窗口大小变化
     this->setGeometry(QRect());
@@ -55,6 +58,15 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     connect(timeTimer, &QTimer::timeout, this, &RealTimeMonitor::updateTime);
     connect(dataTimer, &QTimer::timeout, this, &RealTimeMonitor::updateData);
     connect(testResultTimer, &QTimer::timeout, this, &RealTimeMonitor::readTestResultData);
+    
+    // 初始化读取数据超时保护定时器（5秒后自动重置m_isReadingData）
+    m_readDataTimeoutTimer->setSingleShot(true);
+    connect(m_readDataTimeoutTimer, &QTimer::timeout, this, [this]() {
+        if (m_isReadingData) {
+            LOG_WARNING("读取数据超时保护触发，重置m_isReadingData标志", "实时监控");
+            m_isReadingData = false;
+        }
+    });
 
     // 启动定时器，1秒更新一次时间，2000毫秒更新一次数据（降低通信频率，避免冲突）
     timeTimer->start(1000);
@@ -133,8 +145,7 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     // 初始化本次测试结果显示为 "--"
     ui->resultValue5->setText("--");  // 压力值
     ui->resultValue6->setText("--");  // 泄漏值
-    ui->resultValue8->setText("--");  // 测试结果
-    ui->resultValue8->setStyleSheet("font-size: 14px; padding: 4px 12px; border-radius: 6px; background-color: rgba(10, 25, 41, 0.9); color: #9e9e9e; border: 1px solid #9e9e9e;");
+    ui->resultValue8->setText("--");  // 测试2压力值
     
     // 初始化时从数据库加载测试结果汇总统计
     updateTestResultSummary();
@@ -147,10 +158,21 @@ RealTimeMonitor::RealTimeMonitor(QWidget *parent) :
     scanRequired = false;
     if (ui->productIdLineEdit) {
         ui->productIdLineEdit->setText("");
+        // 设置输入框为只读模式，只能通过扫码输入
+        ui->productIdLineEdit->setReadOnly(false);
+        // 安装事件过滤器来处理焦点事件
+        ui->productIdLineEdit->installEventFilter(this);
         connect(ui->productIdLineEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
             this->productId = text;
             // 更新当前产品编号显示
             updateCurrentProductId(text);
+        });
+        // 监听回车键，扫码枪通常会在输入完成后发送回车键
+        connect(ui->productIdLineEdit, &QLineEdit::returnPressed, this, [this]() {
+            // 扫码完成后自动清空输入框，准备下一次输入
+            ui->productIdLineEdit->clear();
+            ui->productIdLineEdit->selectAll();
+            LOG_DEBUG("产品编号输入框收到回车键，已清空内容准备下次输入", "实时监控");
         });
     }
     if (ui->scanRequiredCheckBox) {
@@ -199,6 +221,8 @@ void RealTimeMonitor::clearTestResult()
 {
     // 清空通道测试结果跟踪
     channelTestResults.clear();
+    // 重置测试结果命令发送标志
+    m_resultSent = false;
     
     // 使用主线程更新UI
     QMetaObject::invokeMethod(this, [this]() {
@@ -256,13 +280,7 @@ void RealTimeMonitor::clearTestResult()
         
         // 8. 重置测试进程标题（rightPanelTitle控件已移除）
         
-        // 9. 清空产品编号输入框和当前产品编号显示
-        if (ui->productIdLineEdit) {
-            ui->productIdLineEdit->clear();
-        }
-        if (ui->currentProductIdValue) {
-            ui->currentProductIdValue->setText("---");
-        }
+        // 注意：产品编号不应在此处清空，保留用于记录测试数据
         
     }, Qt::QueuedConnection);
 }
@@ -291,10 +309,10 @@ void RealTimeMonitor::updateCommunicationErrorUI()
     // 更新UI显示通信异常状态
     QMetaObject::invokeMethod(this, [this]() {
         if (ui->pressureValueLabel) {
-            ui->pressureValueLabel->setText("---");
+            ui->pressureValueLabel->setText("--- ---");
         }
         if (ui->leakValueLabel) {
-            ui->leakValueLabel->setText("---");
+            ui->leakValueLabel->setText("--- ---");
         }
         
         // 更新测试状态显示
@@ -318,6 +336,10 @@ void RealTimeMonitor::updateOperatorInfo(const QString& username, const QString&
 
 void RealTimeMonitor::updateCurrentProductId(const QString& productId)
 {
+    // 更新成员变量
+    this->productId = productId;
+    
+    // 更新显示
     if (ui->currentProductIdValue) {
         if (productId.isEmpty()) {
             ui->currentProductIdValue->setText("---");
@@ -466,10 +488,18 @@ void RealTimeMonitor::readRealTimeData()
     LOG_DEBUG("开始读取气密仪实时数据...", "实时监控");
 
     m_isReadingData = true;
+    
+    // 启动超时保护定时器（5秒后自动重置m_isReadingData）
+    m_readDataTimeoutTimer->start(5000);
 
     // 异步读取主要数据（寄存器8705-8717）
     readDeviceDataAsync(8705, 13, QModbusDataUnit::HoldingRegisters,
                         [this](bool success, const QModbusDataUnit &data) {
+                            // 停止超时保护定时器
+                            if (m_readDataTimeoutTimer->isActive()) {
+                                m_readDataTimeoutTimer->stop();
+                            }
+                            
                             m_isReadingData = false;
                             if (success) {
                                 //LOG_DEBUG("成功读取气密仪寄存器数据", "实时监控");
@@ -500,10 +530,18 @@ void RealTimeMonitor::readTestResultData()
     }
 
     m_isReadingData = true;
+    
+    // 启动超时保护定时器（5秒后自动重置m_isReadingData）
+    m_readDataTimeoutTimer->start(5000);
 
     // 读取寄存器9088-9100的测试结果数据
     readDeviceDataAsync(9088, 13, QModbusDataUnit::HoldingRegisters,
         [this](bool readSuccess, const QModbusDataUnit &data) {
+            // 停止超时保护定时器
+            if (m_readDataTimeoutTimer->isActive()) {
+                m_readDataTimeoutTimer->stop();
+            }
+            
             m_isReadingData = false;
             if (readSuccess) {
                 quint16 reg9088Value = data.value(0);
@@ -596,13 +634,35 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
             auto swap16 = [](quint16 v) -> quint16 { return static_cast<quint16>((v << 8) | (v >> 8)); };
             quint16 lowOrig = swap16(pressureValue);      // 8708 低位原始值
             quint16 highOrig = swap16(pressureHighValue); // 8709 高位原始值
-            // 合成32位值后按1000缩放（使用有符号数处理，支持负压力值）
-            qint32 raw = static_cast<qint32>((static_cast<quint32>(highOrig) << 16) | static_cast<quint32>(lowOrig));
+            
+            // 合并32位值并正确处理有符号数
+            qint32 raw = 0;
+            quint32 combined = (static_cast<quint32>(highOrig) << 16) | static_cast<quint32>(lowOrig);
+            
+            // 正确转换为有符号32位整数
+            if (combined & 0x80000000) {
+                raw = static_cast<qint32>(combined - 0x100000000);
+            } else {
+                raw = static_cast<qint32>(combined);
+            }
+            
             pressure = static_cast<double>(raw) / 1000.0;
-
-            // 更新当前测试进程面板中的实时压力值显示
-            if (ui->pressureValueLabel) {
-                ui->pressureValueLabel->setText(QString::number(pressure, 'f', 2));
+            
+            // 添加数据有效性验证：压力值应该在合理范围内（-1000 到 1000 KPa 之间）
+            bool isValidPressure = (pressure >= -1000.0) && (pressure <= 1000.0);
+            
+            if (isValidPressure) {
+                // 更新当前测试进程面板中的实时压力值显示
+                if (ui->pressureValueLabel) {
+                    ui->pressureValueLabel->setText(QString::number(pressure, 'f', 2) + " " + pressureUnitStr);
+                }
+            } else {
+                // 无效数据，显示错误提示或保持上次有效值
+                LOG_WARNING(QString("压力值超出合理范围: %1 KPa，原始数据: low=0x%2, high=0x%3")
+                    .arg(pressure)
+                    .arg(lowOrig, 4, 16, QChar('0'))
+                    .arg(highOrig, 4, 16, QChar('0')), "实时监控");
+                // 可以选择不更新UI，保持上次的有效值
             }
         }
         
@@ -621,6 +681,7 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
         // 只要泄漏相关参数读取成功就更新泄漏值显示
         if (leakValueRead && leakValue2Read && leakUnitRead) {
             // 2. 泄漏值处理 - 使用两个寄存器进行字节交换后相减并按1000缩放
+            auto swap16 = [](quint16 v) -> quint16 { return static_cast<quint16>((v << 8) | (v >> 8)); };
             quint16 r1 = leakValue;   // 寄存器8711
             quint16 r2 = leakValue2;  // 寄存器8712
             quint16 r1Swapped = swap16(r1);
@@ -638,7 +699,7 @@ void RealTimeMonitor::processMainRegisterData(const QModbusDataUnit &data){
            
             // 更新当前测试进程面板中的实时泄漏值显示
             if (ui->leakValueLabel) {
-                ui->leakValueLabel->setText(QString::number(leak, 'f', 2));
+                ui->leakValueLabel->setText(QString::number(leak, 'f', 2) + " " + leakUnitStr);
             }
         }
 
@@ -926,9 +987,28 @@ void RealTimeMonitor::processTestResultData(const QModbusDataUnit &data){
             quint16 highCode = data.value(4);
             quint16 lowRaw = swap16(lowCode);
             quint16 highRaw = swap16(highCode);
-            // 使用有符号数处理，支持负压力值
-            qint32 rawValue = static_cast<qint32>((static_cast<quint32>(highRaw) << 16) | static_cast<quint32>(lowRaw));
+            
+            // 合并32位值并正确处理有符号数
+            qint32 rawValue = 0;
+            quint32 combined = (static_cast<quint32>(highRaw) << 16) | static_cast<quint32>(lowRaw);
+            
+            // 正确转换为有符号32位整数
+            if (combined & 0x80000000) {
+                rawValue = static_cast<qint32>(combined - 0x100000000);
+            } else {
+                rawValue = static_cast<qint32>(combined);
+            }
+            
             double pressureValue = static_cast<double>(rawValue) / 1000.0;
+            
+            // 添加数据有效性验证：压力值应该在合理范围内（-1000 到 1000 KPa 之间）
+            bool isValidPressure = (pressureValue >= -1000.0) && (pressureValue <= 1000.0);
+            if (!isValidPressure) {
+                LOG_WARNING(QString("测试结果压力值超出合理范围: %1 KPa，原始数据: low=0x%2, high=0x%3")
+                    .arg(pressureValue)
+                    .arg(lowRaw, 4, 16, QChar('0'))
+                    .arg(highRaw, 4, 16, QChar('0')), "实时监控");
+            }
             // 9093：Pressure单位
             quint16 pressureUnitCode = data.value(5);
             PressureUnit pressureUnitEnum = PressureUnitHelper::fromInt(static_cast<int>(pressureUnitCode));
@@ -1112,6 +1192,19 @@ void RealTimeMonitor::updateTestStatus(int processValue)
     static QDateTime stageStartTime;
     static ProcessStatus currentStage = ProcessStatus::STANDBY;
     static bool mainBoardCommandSent = false; // 标记是否已发送主控板命令
+    static bool lastWasTesting = false; // 标记上一个状态是否处于测试中
+    
+    // 【关键修复：检测测试阶段异常复位】
+    // 如果之前是测试阶段（非待机），现在突然变成待机（0），说明发生了异常复位
+    bool isCurrentlyTesting = (currentStage != ProcessStatus::STANDBY);
+    bool isNowStandby = (processValue == ProcessStatus::STANDBY);
+    
+    if (lastWasTesting && isNowStandby) {
+        LOG_WARNING("【异常检测】测试阶段异常复位！从测试状态突然跳回待机状态", "实时监控");
+        // 此处可以添加重发启动命令的逻辑
+        emit reSendStartCommand(m_currentTestingChannel);
+    }
+    lastWasTesting = isCurrentlyTesting;
     
     // 如果阶段发生变化，更新阶段开始时间并发送主控板命令
     if (currentStage != processValue) {
@@ -1410,6 +1503,26 @@ void RealTimeMonitor::onChartDialogClosed()
         chartDialog->deleteLater();
         chartDialog = nullptr;
     }
+    
+    // 使用定时器确保对话框完全关闭后再设置焦点
+    QTimer::singleShot(50, this, [this]() {
+        // 确保主窗口被激活
+        QWidget *mainWindow = this->window();
+        if (mainWindow) {
+            mainWindow->activateWindow();
+            mainWindow->raise();
+        }
+        
+        // 处理所有待处理的事件
+        QApplication::processEvents();
+        
+        // 设置焦点到产品编号输入框
+        if (ui->productIdLineEdit) {
+            ui->productIdLineEdit->setFocus(Qt::TabFocusReason);
+            ui->productIdLineEdit->selectAll();
+            LOG_INFO("全屏图表对话框已关闭，已重新聚焦到产品编号输入框", "实时监控");
+        }
+    });
 }
 
 // 设置当前测试通道
@@ -1579,9 +1692,8 @@ void RealTimeMonitor::calculateAndUpdateTotalResult()
     }
     
     // 如果最终结果已确定（合格或不合格），向主控板发送命令
-    static bool resultSent = false;
-    if (finalResultDetermined && !resultSent) {
-        resultSent = true;
+    if (finalResultDetermined && !m_resultSent) {
+        m_resultSent = true;
         
         if (m_mainControlSetting) {
             if (isQualified) {
@@ -1597,6 +1709,10 @@ void RealTimeMonitor::calculateAndUpdateTotalResult()
                 m_mainControlSetting->sendModbusCommand(0x0005, 0x0001, 500);
                 m_mainControlSetting->sendModbusCommand(0x0006, 0x0001, 500);
             }
+            
+            // 发送完主控板命令后，清空当前编号
+            updateCurrentProductId("");
+            LOG_INFO("测试完成，已清空当前产品编号", "实时监控");
         } else {
             LOG_WARNING("m_mainControlSetting未设置，无法向主控板发送测试结果命令", "实时监控");
         }
@@ -1604,7 +1720,7 @@ void RealTimeMonitor::calculateAndUpdateTotalResult()
     
     // 重置结果发送标记（当有新的测试结果时）
     if (!finalResultDetermined) {
-        resultSent = false;
+        m_resultSent = false;
     }
     
     LOG_INFO(QString("总测试结果计算完成: %1, 全部通过=%2, 全部已测试=%3, 总结果=%4")
@@ -1648,6 +1764,16 @@ void RealTimeMonitor::stopDataTimers()
         testResultTimer->stop();
         LOG_DEBUG("测试结果读取定时器已停止", "实时监控");
     }
+    if (m_readDataTimeoutTimer && m_readDataTimeoutTimer->isActive()) {
+        m_readDataTimeoutTimer->stop();
+        LOG_DEBUG("读取数据超时保护定时器已停止", "实时监控");
+    }
+    
+    // 重置读取状态标志，防止通道切换时卡住
+    if (m_isReadingData) {
+        LOG_INFO("通道切换：重置m_isReadingData标志", "实时监控");
+        m_isReadingData = false;
+    }
 }
 
 // 启动数据读取定时器（用于通道切换后恢复监控）
@@ -1660,6 +1786,12 @@ void RealTimeMonitor::startDataTimers()
     if (testResultTimer && !testResultTimer->isActive()) {
         testResultTimer->start(1000); // 1秒间隔读取测试结果
         LOG_DEBUG("测试结果读取定时器已启动", "实时监控");
+    }
+    
+    // 确保m_isReadingData为false
+    if (m_isReadingData) {
+        LOG_WARNING("启动数据定时器时发现m_isReadingData仍为true，已重置", "实时监控");
+        m_isReadingData = false;
     }
 }
 
@@ -1691,4 +1823,67 @@ void RealTimeMonitor::resetTestPhaseState()
 {
     m_lastReg9088Value = 0;
     LOG_DEBUG("测试阶段状态已重置", "实时监控");
+}
+
+// 强制聚焦到产品编号输入框
+void RealTimeMonitor::focusProductIdInput()
+{
+    QTimer::singleShot(50, this, [this]() {
+        // 确保主窗口被激活
+        QWidget *mainWindow = this->window();
+        if (mainWindow) {
+            mainWindow->activateWindow();
+            mainWindow->raise();
+        }
+        
+        // 处理所有待处理的事件
+        QApplication::processEvents();
+        
+        // 设置焦点到产品编号输入框
+        if (ui->productIdLineEdit) {
+            ui->productIdLineEdit->setFocus(Qt::TabFocusReason);
+            ui->productIdLineEdit->selectAll();
+            LOG_INFO("已强制聚焦到产品编号输入框", "实时监控");
+        }
+    });
+}
+
+// 事件过滤器，处理产品编号输入框的焦点事件
+bool RealTimeMonitor::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->productIdLineEdit) {
+        if (event->type() == QEvent::FocusIn) {
+            // 当产品编号输入框获得焦点时，自动选中所有内容
+            // 这样扫码枪输入会覆盖原有内容，而不是追加
+            ui->productIdLineEdit->selectAll();
+            LOG_DEBUG("产品编号输入框获得焦点，已选中所有内容", "实时监控");
+        }
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+// 重写showEvent，确保每次页面显示时自动聚焦到产品编号输入框
+void RealTimeMonitor::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    
+    // 使用单次延迟确保UI完全渲染后再设置焦点
+    QTimer::singleShot(50, this, [this]() {
+        // 确保主窗口被激活
+        QWidget *mainWindow = this->window();
+        if (mainWindow) {
+            mainWindow->activateWindow();
+            mainWindow->raise();
+        }
+        
+        // 处理所有待处理的事件
+        QApplication::processEvents();
+        
+        // 设置焦点到产品编号输入框
+        if (ui->productIdLineEdit && this->isVisible()) {
+            ui->productIdLineEdit->setFocus(Qt::TabFocusReason);
+            ui->productIdLineEdit->selectAll();
+            LOG_INFO("实时监控页面显示，已自动聚焦到产品编号输入框", "实时监控");
+        }
+    });
 }
